@@ -187,17 +187,17 @@ optimize_x_axis(const vector <Point> &data, const vector <int> &q, int x, int cl
  * Algorithm 4
  * "Returns a set of mutual information scores (0, 0, I_{2,y} ... I_{x,y}) such that I_{i,j} is
  * heuristically close to the highest achievable mutual information score using i rows and j columns"
- * We copy-in data, because we will sort it later on.
  */
 vector <double>
-max_mi(vector <Point> data, int x, int y, int clumps)
+max_mi(vector <Point> &data, int x, int y, int clumps)
 {
 	assert(x > 1);
 	assert(y > 1);
 	assert(clumps > 1);
 
-	sort(data.begin(), data.end(), less_y());	// Do it here to avoid duplication in algorithm 3 line 1
+	sort(data.begin(), data.end(), less_y());
 	vector <int> q(equipartition_y_axis(data, y));
+	sort(data.begin(), data.end(), less_x());
 	return optimize_x_axis(data, q, x, clumps);
 }
 
@@ -258,8 +258,10 @@ main(int argc, char *argv[])
 	double grid_exponent = 0.6;
 	int clumping = 15;
 
+#ifdef TEST
 	test_equipartition();
-	exit(0);
+#endif
+
 	// Read space-separated points
 	ifstream pfile(argv[1]);
 	if (!pfile.is_open()) {
