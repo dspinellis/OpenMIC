@@ -156,7 +156,10 @@ equipartition_y_axis(const vector <Point> &data, int y)
 		    	i += same_points;
 			currently_assigned += same_points;
 			cout << "i=" << i << " currently_assigned=" << currently_assigned << " current_row=" << current_row << endl;
-			desired_row_size = (n - (i + 1)) / y;
+			if (y - current_row)
+				desired_row_size = (n - i + currently_assigned) / (y - current_row);
+			else
+				desired_row_size = numeric_limits<int>::max();
 		} else {
 			current_row++;
 			currently_assigned = 0;
