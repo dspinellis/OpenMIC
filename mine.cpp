@@ -154,13 +154,13 @@ mutual_information(vector <Point> &data, vector <double> &xbins, vector <double>
 Partition
 equipartition_y_axis(const vector <Point> &points, int y)
 {
-	vector <const Point *> data(points.size());
+	assert(y > 1);
 
+	// Create vector of pointers to points sorted by y
+	vector <const Point *> data(points.size());
 	for (int i = 0; i < points.size(); i++)
 		data[i] = &(points[i]);
-
 	sort(data.begin(), data.end(), less_y());
-	assert(y > 1);
 
 	int n = data.size();
 	int i = 0;			// Input position in data
@@ -208,12 +208,12 @@ equipartition_y_axis(const vector <Point> &points, int y)
  * Partition data by "drawing x-axis partition lines only between runs of consecutive points that fall
  * in the same row of the y-axis partition Q."
  * "Return the minimal partition that separates every pair of points that lie in distinct clumps."
+ * Not listed in pseudocode.
  */
-vector <int>
-get_clumps_partition(const vector <Point> &data, const Partition &q)
+Partition
+get_clumps_partition(const vector <const Point *> &data, const Partition &q)
 {
 	assert(data.size() == q.size());
-	assert(is_sorted(q.begin(), q.end()));
 
 	vector <int> clumps;
 }
@@ -224,11 +224,17 @@ get_clumps_partition(const vector <Point> &data, const Partition &q)
  * partitions P of size l."
  */
 vector <double>
-optimize_x_axis(const vector <Point> &data, const Partition &q, int x, int clumps_factor)
+optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int clumps_factor)
 {
 	assert(x > 1);
 
-	vector <int> clumps(get_clumps_partition(data, q));
+	// Create vector of pointers to points sorted by x
+	vector <const Point *> data(points.size());
+	for (int i = 0; i < points.size(); i++)
+		data[i] = &(points[i]);
+	sort(data.begin(), data.end(), less_x());
+
+	Partition clumps(get_clumps_partition(data, q));
 
 	assert(0);
 }
