@@ -307,6 +307,7 @@ main(int argc, char *argv[])
 #ifdef TEST
 	test_equipartition();
 	test_get_clumps_partition();
+	exit(0);
 #endif
 
 	// Read space-separated points
@@ -343,12 +344,13 @@ point_to_ptr(const vector <Point> &points, const vector <int> ordinals)
 	Partition result;
 
 	int prev = -1;
+	int n = 0;
 	for (vector <int>::const_iterator i = ordinals.begin(); i != ordinals.end(); i++) {
 		if (*i != prev) {
 			result.push_back(Partition::value_type());
 			prev = *i;
 		}
-		result.back().insert(&points[*i]);
+		result.back().insert(&points[n++]);
 	}
 	return result;
 }
@@ -362,77 +364,75 @@ test_equipartition()
 	{	// 2 elements into 2 rows
 		vector <Point> test(p, p + 2);
 		Partition got(equipartition_y_axis(test, 2));
-		vector <int> expect = {0, 1};
-		Partition expect_ptr(point_to_ptr(test, expect));
+		Partition expect(point_to_ptr(test, {0, 1}));
 		if (DP()) {
 			show_vector(test);
 			show_partition(got);
 		}
-		assert(equal(expect_ptr.begin(), expect_ptr.end(), got.begin()));
+		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 
-#ifdef ndef
 	{	// 3 elements into 3 rows
 		vector <Point> test(p, p + 3);
-		vector <int> got(equipartition_y_axis(test, 3));
-		vector <int> expect = {0, 1, 2};
+		Partition got(equipartition_y_axis(test, 3));
+		Partition expect(point_to_ptr(test, {0, 1, 2}));
 		if (DP()) {
 			show_vector(test);
-			show_vector(got);
+			show_partition(got);
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 	{	// 6 elements into 3 rows
 		vector <Point> test(p, p + 6);
-		vector <int> got(equipartition_y_axis(test, 3));
-		vector <int> expect = {0, 0, 1, 1, 2, 2, };
+		Partition got(equipartition_y_axis(test, 3));
+		Partition expect(point_to_ptr(test, {0, 0, 1, 1, 2, 2, }));
 		if (DP()) {
 			show_vector(test);
-			show_vector(got);
+			show_partition(expect);
+			show_partition(got);
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 	{	// 3 elements into 2 rows
 		vector <Point> test(p, p + 3);
-		vector <int> got(equipartition_y_axis(test, 2));
-		vector <int> expect = {0, 1, 1};
+		Partition got(equipartition_y_axis(test, 2));
+		Partition expect(point_to_ptr(test, {0, 1, 1}));
 		if (DP()) {
 			show_vector(test);
-			show_vector(got);
+			show_partition(got);
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 	{	// 8 elements into 3 rows
 		vector <Point> test(p, p + 8);
-		vector <int> got(equipartition_y_axis(test, 3));
-		vector <int> expect = {0, 0, 1, 1, 1, 2, 2, 2, };
+		Partition got(equipartition_y_axis(test, 3));
+		Partition expect(point_to_ptr(test, {0, 0, 1, 1, 1, 2, 2, 2, }));
 		if (DP()) {
 			show_vector(test);
-			show_vector(got);
+			show_partition(got);
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 	{	// 9 elements into 3 rows with tie
 		vector <Point> test(p, p + 9);
-		vector <int> got(equipartition_y_axis(test, 3));
-		vector <int> expect = {0, 0, 0, 1, 1, 1, 1, 2, 2, };
+		Partition got(equipartition_y_axis(test, 3));
+		Partition expect(point_to_ptr(test, {0, 0, 0, 1, 1, 1, 1, 2, 2, }));
 		if (DP()) {
 			show_vector(test);
-			show_vector(got);
+			show_partition(got);
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 	{	// 10 elements into 5 rows with two ties
 		vector <Point> test(p, p + 10);
-		vector <int> got(equipartition_y_axis(test, 5));
-		vector <int> expect = {0, 0, 1, 1, 2, 2, 2, 3, 3, 3, };
+		Partition got(equipartition_y_axis(test, 5));
+		Partition expect(point_to_ptr(test, {0, 0, 1, 1, 2, 2, 2, 3, 3, 3, }));
 		if (DP()) {
 			show_vector(test);
-			show_vector(got);
+			show_partition(got);
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
-#endif
 }
 
 void
