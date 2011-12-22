@@ -131,6 +131,9 @@ mutual_information(vector <Point> &data, vector <double> &xbins, vector <double>
 vector <int>
 equipartition_y_axis(const vector <Point> &data, int y)
 {
+	assert(is_sorted(data.begin(), data.end(), less_y()));
+	assert(y > 1);
+
 	int n = data.size();
 	int i = 0;			// Input position in data
 	int desired_row_size = n / y;
@@ -173,13 +176,33 @@ equipartition_y_axis(const vector <Point> &data, int y)
 }
 
 /*
+ * Partition data by "drawing x-axis partition lines only between runs of consecutive points that fall
+ * in the same row of the y-axis partition Q."
+ * "Return the minimal partition that separates every pair of points that lie in distinct clumps."
+ */
+vector <int>
+get_clumps_partition(const vector <Point> &data, const vector <int> &q)
+{
+	assert(is_sorted(data.begin(), data.end(), less_x()));
+	assert(data.size() == q.size());
+	assert(is_sorted(q.begin(), q.end()));
+
+	vector <int> clumps;
+}
+
+/*
  * Algorithm 2
  * "Returns a list of scores (I_2 ... I_x) such that each I_l is the maximum value of I(P;Q) over all
  * partitions P of size l."
  */
 vector <double>
-optimize_x_axis(const vector <Point> &data, const vector <int> &q, int x, int clumps)
+optimize_x_axis(const vector <Point> &data, const vector <int> &q, int x, int clumps_factor)
 {
+	assert(is_sorted(data.begin(), data.end(), less_x()));
+	assert(x > 1);
+
+	vector <int> clumps(get_clumps_partition(data, q));
+
 	assert(0);
 }
 
@@ -250,6 +273,7 @@ characteristic_matrix(vector <Point> &data, double b, int clumps)
 }
 
 void test_equipartition();
+void test_get_clumps_partition();
 
 int
 main(int argc, char *argv[])
@@ -260,6 +284,7 @@ main(int argc, char *argv[])
 
 #ifdef TEST
 	test_equipartition();
+	test_get_clumps_partition();
 #endif
 
 	// Read space-separated points
@@ -367,5 +392,10 @@ test_equipartition()
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
+}
+
+void
+test_get_clumps_partition()
+{
 }
 #endif
