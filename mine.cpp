@@ -140,19 +140,23 @@ equipartition_y_axis(const vector <Point> &data, int y)
 	cout << "n=" << n << endl;
 	do {
 		//if (DP())
-			cout << "current_row=" << current_row << " i=" << i << " desired_row_size=" << desired_row_size << endl;
+			cout << "current_row=" << current_row << " i=" << i << " currently_assigned=" << currently_assigned << " desired_row_size=" << desired_row_size << endl;
 		// Line 6: Cardinality of S is all that is needed; exploit ordering by y
 		int same_points = 1;	// Number of points with same y (|S|)
 		for (int j = i + 1; j < n && data[j].y == data[i].y; j++)
 			same_points++;
+		cout << "same_points=" << same_points << " currently_assigned=" << currently_assigned << " have=" << abs(currently_assigned + same_points - desired_row_size) << " want=" << abs(currently_assigned - desired_row_size) << endl;
 		if (currently_assigned == 0 ||
 		    // Distance from target to handle tie breaks
 		    abs(currently_assigned + same_points - desired_row_size) <= abs(currently_assigned - desired_row_size)) {
-			for (int j = 0; j < same_points; j++)
+			for (int j = 0; j < same_points; j++) {
 				q[i + j] = current_row;
+				cout << "Assign point " << i + j << " to row " << current_row << endl;
+			}
 		    	i += same_points;
 			currently_assigned += same_points;
-			desired_row_size = (n - i) / y;		// XXX / (y - current_row)?
+			cout << "i=" << i << " currently_assigned=" << currently_assigned << " current_row=" << current_row << endl;
+			desired_row_size = (n - (i + 1)) / y;
 		} else {
 			current_row++;
 			currently_assigned = 0;
@@ -280,25 +284,58 @@ main(int argc, char *argv[])
 void
 test_equipartition()
 {
+	//           1       2       3       4       5       6       7       8       9       10      11      12      13        14
 	Point p[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7}, {8, 8}, {9, 9}, {10, 10}, {11, 11}};
 
-	{
+	{	// 2 elements into 2 rows
 		vector <Point> test(p, p + 2);
 		vector <int> got(equipartition_y_axis(test, 2));
 		vector <int> expect = {0, 1};
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
 
-	{
+	{	// 3 elements into 3 rows
 		vector <Point> test(p, p + 3);
 		vector <int> got(equipartition_y_axis(test, 3));
 		vector <int> expect = {0, 1, 2};
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
-	{
+	{	// 6 elements into 3 rows
 		vector <Point> test(p, p + 6);
 		vector <int> got(equipartition_y_axis(test, 3));
 		vector <int> expect = {0, 0, 1, 1, 2, 2, };
+		show_vector(test);
+		show_vector(got);
+		assert(equal(expect.begin(), expect.end(), got.begin()));
+	}
+	{	// 3 elements into 2 rows
+		vector <Point> test(p, p + 3);
+		vector <int> got(equipartition_y_axis(test, 2));
+		vector <int> expect = {0, 1, 1};
+		show_vector(test);
+		show_vector(got);
+		assert(equal(expect.begin(), expect.end(), got.begin()));
+	}
+	{	// 8 elements into 3 rows
+		vector <Point> test(p, p + 8);
+		vector <int> got(equipartition_y_axis(test, 3));
+		vector <int> expect = {0, 0, 1, 1, 1, 2, 2, 2, };
+		show_vector(test);
+		show_vector(got);
+		assert(equal(expect.begin(), expect.end(), got.begin()));
+	}
+	{	// 9 elements into 3 rows with tie
+		vector <Point> test(p, p + 9);
+		vector <int> got(equipartition_y_axis(test, 3));
+		vector <int> expect = {0, 0, 0, 1, 1, 1, 1, 2, 2, };
+		show_vector(test);
+		show_vector(got);
+		assert(equal(expect.begin(), expect.end(), got.begin()));
+	}
+	{	// 10 elements into 5 rows with two ties
+		vector <Point> test(p, p + 10);
+		vector <int> got(equipartition_y_axis(test, 5));
+		vector <int> expect = {0, 0, 1, 1, 2, 2, 2, 3, 3, 3, };
 		show_vector(test);
 		show_vector(got);
 		assert(equal(expect.begin(), expect.end(), got.begin()));
