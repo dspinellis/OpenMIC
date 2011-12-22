@@ -211,11 +211,29 @@ equipartition_y_axis(const vector <Point> &points, int y)
  * Not listed in pseudocode.
  */
 Partition
-get_clumps_partition(const vector <const Point *> &data, const Partition &q)
+get_clumps_partition(const vector <Point> &points, const Partition &q)
 {
-	assert(data.size() == q.size());
+	// Create vector of pointers to points sorted by x
+	vector <const Point *> data(points.size());
+	for (int i = 0; i < points.size(); i++)
+		data[i] = &(points[i]);
+	sort(data.begin(), data.end(), less_x());
 
-	vector <int> clumps;
+	// Create a map from a point ordinal to its y partition
+	vector <const Partition::value_type *> ypartition_map(points.size());
+	for (Partition::const_iterator i = q.begin(); i != q.end(); i++)
+		for (Partition::value_type::const_iterator j = i->begin(); j != i->end(); j++)
+			ypartition_map[*j - &*(points.begin())] = &*i;
+
+	Partition clumps;
+	Partition::value_type const *current_partition = NULL;
+	for (int i = 0; i < data.size(); i++) {
+		if (ypartition_map[i] != current_partition) {
+			clumps.push_back(Partition::value_type());
+			current_partition = ypartition_map[i];
+		}
+		clumps.back().insert(data[i]);
+	}
 }
 
 /*
@@ -228,13 +246,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int clu
 {
 	assert(x > 1);
 
-	// Create vector of pointers to points sorted by x
-	vector <const Point *> data(points.size());
-	for (int i = 0; i < points.size(); i++)
-		data[i] = &(points[i]);
-	sort(data.begin(), data.end(), less_x());
-
-	Partition clumps(get_clumps_partition(data, q));
+	Partition clumps(get_clumps_partition(points, q));
 
 	assert(0);
 }
