@@ -234,6 +234,7 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
 		}
 		clumps.back().insert(data[i]);
 	}
+	return clumps;
 }
 
 /*
@@ -356,20 +357,20 @@ main(int argc, char *argv[])
 }
 
 #ifdef TEST
+/*
+ * Return a partition of points as indicated by their corresponding ordinals. 
+ */
 static Partition
 point_to_ptr(const vector <Point> &points, const vector <int> ordinals)
 {
-	Partition result;
+	// Calculate number of partitions
+	set <int> ordinal_set(ordinals.begin(), ordinals.end());
+	Partition result(ordinal_set.size());
 
 	int prev = -1;
 	int n = 0;
-	for (vector <int>::const_iterator i = ordinals.begin(); i != ordinals.end(); i++) {
-		if (*i != prev) {
-			result.push_back(Partition::value_type());
-			prev = *i;
-		}
-		result.back().insert(&points[n++]);
-	}
+	for (vector <int>::const_iterator i = ordinals.begin(); i != ordinals.end(); i++)
+		result[*i].insert(&points[n++]);
 	return result;
 }
 
@@ -451,10 +452,63 @@ test_equipartition()
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
+	{	// 2 elements into 2 rows unsorted
+		vector <Point> test(p, p + 2);
+		swap(*test.begin(), *(test.begin() + 1));
+		Partition expect(point_to_ptr(test, {1, 0}));
+		Partition got(equipartition_y_axis(test, 2));
+		if (DP()) {
+			show_vector(test);
+			show_partition(expect);
+			show_partition(got);
+		}
+		assert(equal(expect.begin(), expect.end(), got.begin()));
+	}
 }
 
 void
 test_get_clumps_partition()
 {
+	/*
+	 * 3       x
+	 * 2     x
+	 * 1   x x
+	 * 0 x     x
+	 *   0 1 2 3
+	 *
+	 * Consider the above points.
+	 * Their Y axis equipartition would be {{(0,0), (3,0)}, {(1, 1), (2, 1)}, {(2,2), (3,3)}}
+	 * Partition ordinals:                    0      0        1       1         2      2
+	 * The corresponding clumps would be {{(0,0)},  {(1, 1), (2, 1)}, {(2,2), (3, 3)}, {(3,0)}}
+	 * Partition ordinals:                    0      1        1         2      2         3
+	 */
+
+	Point p[] = {{0, 0}, {1, 1}, {2, 2}, {2, 1}, {3, 0}, {3, 3}};
+
+	{	// Nonconsecutive and consecutive points
+		vector <Point> test(p, p + 6);
+
+		// Six points into three bins
+		Partition got_y(equipartition_y_axis(test, 3));
+		Partition expect_y(point_to_ptr(test, {0, 1, 2, 1, 0, 2}));
+
+		Partition got_clumps(get_clumps_partition(test, got_y));
+		Partition expect_clumps(point_to_ptr(test, {0, 1, 2, 1, 3, 2}));
+		if (1 || DP()) {
+			cout << "Vector" << endl;
+			show_vector(test);
+			cout << "Expected Y equipartition" << endl;
+			show_partition(expect_y);
+			cout << "Obtained Y equipartition" << endl;
+			show_partition(got_y);
+
+			cout << "Expected clumps" << endl;
+			show_partition(expect_clumps);
+			cout << "Obtained clumps" << endl;
+			show_partition(got_clumps);
+		}
+		assert(equal(expect_y.begin(), expect_y.end(), got_y.begin()));
+	}
+
 }
 #endif
