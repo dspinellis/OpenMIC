@@ -228,8 +228,9 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
 	Partition clumps;
 	Partition::value_type const *current_partition = NULL;
 	for (int i = 0; i < data.size(); i++) {
-		if (ypartition_map[i] != current_partition) {
-			clumps.push_back(Partition::value_type());
+		// Indirect through data to get correct point ordinals
+		if (ypartition_map[data[i] - &*points.begin()] != current_partition) {
+			clumps.push_back(Partition::value_type());	// Start a new partition
 			current_partition = ypartition_map[i];
 		}
 		clumps.back().insert(data[i]);
