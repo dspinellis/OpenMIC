@@ -470,20 +470,20 @@ void
 test_get_clumps_partition()
 {
 	/*
-	 * 3       x
-	 * 2     x
+	 * 3         x
+	 * 2       x
 	 * 1   x x
-	 * 0 x     x
-	 *   0 1 2 3
+	 * 0 x         x
+	 *   0 1 2 3 4 5
 	 *
 	 * Consider the above points.
-	 * Their Y axis equipartition would be {{(0,0), (3,0)}, {(1, 1), (2, 1)}, {(2,2), (3,3)}}
+	 * Their Y axis equipartition would be {{(0,0), (5,0)}, {(1, 1), (2, 1)}, {(3,2), (4,3)}}
 	 * Partition ordinals:                    0      0        1       1         2      2
-	 * The corresponding clumps would be {{(0,0)},  {(1, 1), (2, 1)}, {(2,2), (3, 3)}, {(3,0)}}
+	 * The corresponding clumps would be {{(0,0)},  {(1, 1), (2, 1)}, {(3,2), (4, 3)}, {(5,0)}}
 	 * Partition ordinals:                    0      1        1         2      2         3
 	 */
 
-	Point p[] = {{0, 0}, {1, 1}, {2, 2}, {2, 1}, {3, 0}, {3, 3}};
+	Point p[] = {{0, 0}, {1, 1}, {3, 2}, {2, 1}, {5, 0}, {4, 3}};
 
 	{	// Nonconsecutive and consecutive points
 		vector <Point> test(p, p + 6);
