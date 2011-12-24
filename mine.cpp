@@ -266,12 +266,12 @@ get_superclumps_partition(const Partition &input_partitions, int npoints, int ma
 	Partition::const_iterator i = input_partitions.begin();
 	do {
 		if (DP()) {
-			cout << var(abs(currently_assigned + i->size() - points_per_partition)) << endl;
+			cout << var(abs(currently_assigned + (int)i->size() - points_per_partition)) << endl;
 			cout << var(abs(currently_assigned - points_per_partition)) << endl;
 		}
 		if (currently_assigned == 0 ||
 		    // Distance from target to handle tie breaks
-		    abs(currently_assigned + i->size() - points_per_partition) <= abs(currently_assigned - points_per_partition)) {
+		    abs(currently_assigned + (int)i->size() - points_per_partition) <= abs(currently_assigned - points_per_partition)) {
 			q[output_partition].insert(i->begin(), i->end());
 			currently_assigned += i->size();
 			total_assigned += i->size();
