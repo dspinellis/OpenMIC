@@ -162,20 +162,20 @@ equipartition_y_axis(const vector <Point> &points, int y)
 		data[i] = &(points[i]);
 	sort(data.begin(), data.end(), less_y());
 
-	int n = data.size();
+	int npoints = data.size();
 	int i = 0;			// Input position in data
-	int desired_row_size = n / y;
+	int desired_row_size = npoints / y;
 	Partition q(1);
 	int current_row = 0;		// Output position in q
 	int currently_assigned = 0;	// Equivalent of #
 	if (DP())
-		cout << "\nn=" << n << endl;
+		cout << "\nn=" << npoints << endl;
 	do {
 		if (DP())
 			cout << "current_row=" << current_row << " i=" << i << " currently_assigned=" << currently_assigned << " desired_row_size=" << desired_row_size << endl;
 		// Line 6: Cardinality of S is all that is needed; exploit ordering by y
 		int same_points = 1;	// Number of points with same y (|S|)
-		for (int j = i + 1; j < n && data[j]->y == data[i]->y; j++)
+		for (int j = i + 1; j < npoints && data[j]->y == data[i]->y; j++)
 			same_points++;
 		if (DP())
 			cout << "same_points=" << same_points << " currently_assigned=" << currently_assigned << " have=" << abs(currently_assigned + same_points - desired_row_size) << " want=" << abs(currently_assigned - desired_row_size) << endl;
@@ -192,7 +192,7 @@ equipartition_y_axis(const vector <Point> &points, int y)
 			if (DP())
 				cout << "i=" << i << " currently_assigned=" << currently_assigned << " current_row=" << current_row << endl;
 			if (y - current_row)
-				desired_row_size = (n - i + currently_assigned) / (y - current_row);
+				desired_row_size = (npoints - i + currently_assigned) / (y - current_row);
 			else
 				desired_row_size = numeric_limits<int>::max();
 		} else {
@@ -200,7 +200,7 @@ equipartition_y_axis(const vector <Point> &points, int y)
 			q.push_back(Partition::value_type());
 			currently_assigned = 0;
 		}
-	} while(i < n);
+	} while(i < npoints);
 	return q;
 }
 
