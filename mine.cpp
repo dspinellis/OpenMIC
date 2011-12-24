@@ -228,10 +228,11 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
 	Partition clumps;
 	Partition::value_type const *current_partition = NULL;
 	for (int i = 0; i < data.size(); i++) {
+		cout << "Look at point " << i << ": " << *data[i] << endl;
 		// Indirect through data to get correct point ordinals
 		if (ypartition_map[data[i] - &*points.begin()] != current_partition) {
 			clumps.push_back(Partition::value_type());	// Start a new partition
-			current_partition = ypartition_map[i];
+			current_partition = ypartition_map[data[i] - &*points.begin()];
 		}
 		clumps.back().insert(data[i]);
 	}
@@ -509,6 +510,7 @@ test_get_clumps_partition()
 			show_partition(got_clumps);
 		}
 		assert(equal(expect_y.begin(), expect_y.end(), got_y.begin()));
+		assert(equal(expect_clumps.begin(), expect_clumps.end(), got_clumps.begin()));
 	}
 
 }
