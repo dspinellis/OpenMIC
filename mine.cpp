@@ -527,6 +527,20 @@ test_equipartition()
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
+	{	// 22 elements into 2 rows with 20 ties
+		vector <Point> test(22, Point(10,10));
+		test[0] = Point(1,1);
+		test[1] = Point(2,2);
+		Partition got(equipartition_y_axis(test, 2));
+		vector <int> expect_ordinals(22, 1);
+		expect_ordinals[0] = expect_ordinals[1] = 0;
+		Partition expect(point_to_ptr(test, expect_ordinals));
+		if (DP()) {
+			show_vector(test);
+			show_partition(got);
+		}
+		assert(equal(expect.begin(), expect.end(), got.begin()));
+	}
 }
 
 void
