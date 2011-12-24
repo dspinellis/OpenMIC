@@ -63,6 +63,18 @@ operator<<(ostream& o, const Point *p)
 
 typedef vector<set<const Point *> > Partition;
 
+// Return the Shannon entropy of a probability vector P
+// See http://www.scholarpedia.org/article/Entropy#Shannon_entropy
+template <typename T>
+double
+H(const T &p)
+{
+	double sum = 0;
+
+	for (typename T::const_iterator i = p.begin(); i != p.end(); i++)
+		sum += *i * log2(*i);
+	return -sum;
+}
 
 // Read a vector from the specified file
 void
@@ -383,6 +395,7 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 void test_equipartition();
 void test_get_clumps_partition();
 void test_get_superclumps_partition();
+void test_H();
 
 int
 main(int argc, char *argv[])
@@ -395,6 +408,7 @@ main(int argc, char *argv[])
 	test_equipartition();
 	test_get_clumps_partition();
 	test_get_superclumps_partition();
+	test_H();
 	exit(0);
 #endif
 
@@ -628,5 +642,12 @@ test_get_superclumps_partition()
 			delete *j;
 	}
 	assert(points_in_few == total_points);
+}
+
+void
+test_H()
+{
+	// Should be an exact result!
+	assert(H(vector <double>({1./8, 1./4, 1./8, 1./2})) == 7./4);
 }
 #endif
