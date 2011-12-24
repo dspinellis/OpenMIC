@@ -179,10 +179,14 @@ equipartition_y_axis(const vector <Point> &points, int y)
 		for (int j = i + 1; j < npoints && data[j]->y == data[i]->y; j++)
 			same_points++;
 		if (DP())
-			cout << "same_points=" << same_points << " currently_assigned=" << currently_assigned << " have=" << abs(currently_assigned + same_points - desired_row_size) << " want=" << abs(currently_assigned - desired_row_size) << endl;
+			cout << var(currently_assigned) << var(same_points) << var(desired_row_size) <<
+			    " LHS=" << abs(currently_assigned + same_points - desired_row_size) <<
+			    " RHS=" << abs(currently_assigned - desired_row_size) << endl;
 		if (currently_assigned == 0 ||
 		    // Distance from target to handle tie breaks
 		    abs(currently_assigned + same_points - desired_row_size) <= abs(currently_assigned - desired_row_size)) {
+			if (DP())
+				cout << "Assign points to row " << current_row << endl;
 			for (int j = 0; j < same_points; j++) {
 				q[current_row].insert(data[i + j]);
 				if (DP())
@@ -198,6 +202,8 @@ equipartition_y_axis(const vector <Point> &points, int y)
 				desired_row_size = numeric_limits<int>::max();
 		} else {
 			current_row++;
+			if (DP())
+				cout << "Advance current_row to " << current_row << endl;
 			q.push_back(Partition::value_type());
 			currently_assigned = 0;
 		}
