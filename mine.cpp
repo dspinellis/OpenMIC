@@ -228,7 +228,8 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
 	Partition clumps;
 	Partition::value_type const *current_partition = NULL;
 	for (int i = 0; i < data.size(); i++) {
-		cout << "Look at point " << i << ": " << *data[i] << endl;
+		if (DP())
+			cout << "Look at point " << i << ": " << *data[i] << endl;
 		// Indirect through data to get correct point ordinals
 		if (ypartition_map[data[i] - &*points.begin()] != current_partition) {
 			clumps.push_back(Partition::value_type());	// Start a new partition
@@ -240,16 +241,29 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
 }
 
 /*
+ * Repartition by merging true clumps into superclumps in a way that aims to have each
+ * superclump contain approximately the same number of points returning at most max_clumps
+ * clumps.
+ * npoints is the total number of points.
+ * Not listed in pseudocode.
+ */
+Partition
+get_superclumps_partition(const Partition &q, int npoints, int max_clumps)
+{
+}
+
+/*
  * Algorithm 2
  * "Returns a list of scores (I_2 ... I_x) such that each I_l is the maximum value of I(P;Q) over all
  * partitions P of size l."
+ * Max_clumps (\^k in the text) is the maximum number of clumps to use.
  */
 vector <double>
-optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int clumps_factor)
+optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max_clumps)
 {
 	assert(x > 1);
 
-	Partition clumps(get_clumps_partition(points, q));
+	Partition clumps(get_superclumps_partition(get_clumps_partition(points, q), points.size(), max_clumps));
 
 	assert(0);
 }
@@ -257,17 +271,18 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int clu
 /*
  * Algorithm 4
  * "Returns a set of mutual information scores (0, 0, I_{2,y} ... I_{x,y}) such that I_{i,j} is
- * heuristically close to the highest achievable mutual information score using i rows and j columns"
+ * heuristically close to the highest achievable mutual information score using i rows and j columns."
+ * Max_clumps (\^k in the text) is the maximum number of clumps to use.
  */
 vector <double>
-max_mi(vector <Point> &data, int x, int y, int clumps)
+max_mi(vector <Point> &data, int x, int y, int max_clumps)
 {
 	assert(x > 1);
 	assert(y > 1);
-	assert(clumps > 1);
+	assert(max_clumps > 1);
 
 	Partition q(equipartition_y_axis(data, y));
-	return optimize_x_axis(data, q, x, clumps);
+	return optimize_x_axis(data, q, x, max_clumps);
 }
 
 // Functor for flipping x, y
@@ -278,11 +293,14 @@ struct flip : public unary_function<const Point &, Point> {
 /*
  * Algorithm 5
  * Return \forall where x * y < b the matrix with the highest information content
+ * The clump factor (c in the text) "determines by what factor clumps may outnumber columns
+ * when OptimizeXAxis is called. When trying to partition the x-axis into x columns, the
+ * algorithm will start with at most cx clumps."
  */
 vector <vector <double> >
-characteristic_matrix(vector <Point> &data, double b, int clumps)
+characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 {
-	assert(clumps > 0);
+	assert(clump_factor > 0);
 	assert(b > 3);
 
 	// data2 (D\bot) is (y1, x1), (y2, x2) ...
@@ -295,12 +313,12 @@ characteristic_matrix(vector <Point> &data, double b, int clumps)
 	for (int y = 2; y <= b / 2; y++) {
 		int x = b / y;
 		cout << "x=" << x << " y=" << y << " b=" << b << endl;
-		vector <double> mmi(max_mi(data, x, y, clumps * x));
+		vector <double> mmi(max_mi(data, x, y, clump_factor * x));
 		cout << "max_mi" << endl;
 		show_vector(mmi);
 		mi.push_back(mmi);
-		//mi.push_back(max_mi(data, x, y, clumps * x));
-		mi2.push_back(max_mi(data2, x, y, clumps * x));
+		//mi.push_back(max_mi(data, x, y, clump_factor * x));
+		mi2.push_back(max_mi(data2, x, y, clump_factor * x));
 	}
 
 	// Fill-in the characteristic matrix (lines 7-10)
@@ -496,7 +514,7 @@ test_get_clumps_partition()
 
 		Partition got_clumps(get_clumps_partition(test, got_y));
 		Partition expect_clumps(point_to_ptr(test, {0, 1, 2, 1, 3, 2}));
-		if (1 || DP()) {
+		if (DP()) {
 			cout << "Vector" << endl;
 			show_vector(test);
 			cout << "Expected Y equipartition" << endl;
