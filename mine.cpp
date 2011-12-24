@@ -10,6 +10,7 @@
 #include <iterator>	// ostream_iterator
 
 #define DP() 0
+#define var(x) " " #x "=" << x
 
 /*
  * Missing from STL.  See Effective STL item 36 and
@@ -259,24 +260,32 @@ get_superclumps_partition(const Partition &input_partitions, int npoints, int ma
 
 	int points_per_partition = npoints / max_clumps;
 	Partition q(1);
-	int current_partition = 0;	// Output position in q
+	int output_partition = 0;	// Output position in q
 	int currently_assigned = 0;	// Points assigned in this iteration
 	int total_assigned = 0;		// Points assigned over all iterations
 	Partition::const_iterator i = input_partitions.begin();
 	do {
+		if (DP()) {
+			cout << var(abs(currently_assigned + i->size() - points_per_partition)) << endl;
+			cout << var(abs(currently_assigned - points_per_partition)) << endl;
+		}
 		if (currently_assigned == 0 ||
 		    // Distance from target to handle tie breaks
 		    abs(currently_assigned + i->size() - points_per_partition) <= abs(currently_assigned - points_per_partition)) {
-			q[current_partition].insert(i->begin(), i->end());
+			q[output_partition].insert(i->begin(), i->end());
 			currently_assigned += i->size();
 			total_assigned += i->size();
 		    	i++;
-			if (max_clumps - current_partition)
-				points_per_partition = (npoints - total_assigned + currently_assigned) / (max_clumps - current_partition);
+			if (max_clumps - output_partition)
+				points_per_partition = (npoints - total_assigned + currently_assigned) / (max_clumps - output_partition);
 			else
 				points_per_partition = numeric_limits<int>::max();
+			if (DP()) {
+				cout << var(npoints) << var(total_assigned) << var(currently_assigned) << endl;
+				cout << var(output_partition) << var(points_per_partition) << endl;
+			}
 		} else {
-			current_partition++;
+			output_partition++;
 			q.push_back(Partition::value_type());
 			currently_assigned = 0;
 		}
@@ -367,6 +376,7 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 
 void test_equipartition();
 void test_get_clumps_partition();
+void test_get_superclumps_partition();
 
 int
 main(int argc, char *argv[])
@@ -378,6 +388,7 @@ main(int argc, char *argv[])
 #ifdef TEST
 	test_equipartition();
 	test_get_clumps_partition();
+	test_get_superclumps_partition();
 	exit(0);
 #endif
 
@@ -563,5 +574,39 @@ test_get_clumps_partition()
 		assert(equal(expect_clumps.begin(), expect_clumps.end(), got_clumps.begin()));
 	}
 
+}
+
+void
+test_get_superclumps_partition()
+{
+	const int MANY_PARTITIONS = 1000;
+	const int FEW_PARTITIONS = 100;
+	const int MAX_POINTS_PER_PARTITION = 50;
+	int total_points = 0;
+
+	// Create many partitions with a random number of points each up to MAX_POINTS_PER_PARTITION
+	Partition many(MANY_PARTITIONS);
+	srand(42);		// Ensure deterministic behavior
+	// Fill in partitions with a random amount of points
+	for (Partition::iterator i = many.begin(); i != many.end(); i++) {
+		int npoints = rand() % MAX_POINTS_PER_PARTITION;
+		for (int j = 0; j < npoints; j++)
+			i->insert(new Point(rand(), rand()));
+		total_points += npoints;
+	}
+
+	Partition few(get_superclumps_partition(many, total_points, FEW_PARTITIONS));
+
+	if (DP())
+		cout << "few.size()=" << few.size() << endl;
+	assert(few.size() == FEW_PARTITIONS);
+	int points_in_few = 0;
+	for (Partition::const_iterator i = few.begin(); i != few.end(); i++) {
+		assert(i->size() < total_points / FEW_PARTITIONS + MAX_POINTS_PER_PARTITION - 1);
+		points_in_few += i->size();
+		for (Partition::value_type::const_iterator j = i->begin(); j != i->end(); j++)
+			delete *j;
+	}
+	assert(points_in_few == total_points);
 }
 #endif
