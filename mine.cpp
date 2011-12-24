@@ -76,6 +76,22 @@ H(const T &p)
 	return -sum;
 }
 
+// Return the Shannon entropy of the specified partition of a set of npoints
+double
+H(const Partition &part)
+{
+	vector <double> p;
+	int npoints = 0;
+	for (Partition::const_iterator i = part.begin(); i != part.end(); i++) {
+		p.push_back(i->size());
+		npoints += i->size();
+	}
+	// Convert cardinalities to probability weights
+	for (vector <double>::iterator i = p.begin(); i != p.end(); i++)
+		*i /= npoints;
+	return H(p);
+}
+
 // Read a vector from the specified file
 void
 read_vector(const char *name, vector <double> &v)
@@ -649,5 +665,12 @@ test_H()
 {
 	// Should be an exact result!
 	assert(H(vector <double>({1./8, 1./4, 1./8, 1./2})) == 7./4);
+
+	// Above example on partitions
+	vector <Point> test({{1, 1}, {1, 1}, {1, 1}, {1, 1}, {2, 2,}, {2, 2,}, {3, 3}, {4, 4}});
+	Partition got(equipartition_y_axis(test, 4));
+	Partition expect(point_to_ptr(test, {0, 0, 0, 0, 1, 1, 2, 3}));
+	assert(equal(expect.begin(), expect.end(), got.begin()));
+	assert(H(got) == 7./4);
 }
 #endif
