@@ -248,8 +248,40 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
  * Not listed in pseudocode.
  */
 Partition
-get_superclumps_partition(const Partition &q, int npoints, int max_clumps)
+get_superclumps_partition(const Partition &input_partitions, int npoints, int max_clumps)
 {
+	assert(!input_partitions.empty());
+	assert(npoints > 0);
+	assert(max_clumps > 0);
+
+	if (input_partitions.size() <= max_clumps)
+		return (input_partitions);
+
+	int points_per_partition = npoints / max_clumps;
+	Partition q(1);
+	int current_partition = 0;	// Output position in q
+	int currently_assigned = 0;	// Points assigned in this iteration
+	int total_assigned = 0;		// Points assigned over all iterations
+	Partition::const_iterator i = input_partitions.begin();
+	do {
+		if (currently_assigned == 0 ||
+		    // Distance from target to handle tie breaks
+		    abs(currently_assigned + i->size() - points_per_partition) <= abs(currently_assigned - points_per_partition)) {
+			q[current_partition].insert(i->begin(), i->end());
+			currently_assigned += i->size();
+			total_assigned += i->size();
+		    	i++;
+			if (max_clumps - current_partition)
+				points_per_partition = (npoints - total_assigned + currently_assigned) / (max_clumps - current_partition);
+			else
+				points_per_partition = numeric_limits<int>::max();
+		} else {
+			current_partition++;
+			q.push_back(Partition::value_type());
+			currently_assigned = 0;
+		}
+	} while(i != input_partitions.end());
+	return q;
 }
 
 /*
