@@ -282,6 +282,12 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	Partition clumps(get_superclumps_partition(get_clumps_partition(points, q), points.size(), max_clumps));
 
+	// Establish the point ordinals corresponding to each clump
+	vector <int> clump_point_ordinals;
+	clump_point_ordinals.reserve(clumps.size());
+	for (Partition::const_iterator i = clumps.begin(); i != clumps.end(); i++)
+		clump_point_ordinals.push_back(clump_point_ordinals.back() + i->size());
+
 	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
 	vector < vector <double> > I(k, vector <double> (x + 1));
 
