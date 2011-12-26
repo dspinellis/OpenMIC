@@ -9,8 +9,13 @@
 #include <cmath>	// log2
 #include <iterator>	// ostream_iterator
 
-#define DP() 0
-#define var(x) " " #x "=" << x
+#include "Point.h"
+#include "Partition.h"
+#include "AdjustablePartition.h"
+
+#include "entropy.h"
+#include "debug.h"
+
 
 /*
  * Missing from STL.  See Effective STL item 36 and
@@ -28,69 +33,6 @@ OutputIterator copy_if(InputIterator begin, InputIterator end,
 }
 
 using namespace std;
-
-struct Point {
-	double x, y;
-	Point() {}
-	Point(double px, double py) : x(px), y(py) {}
-	friend ostream& operator<<(ostream& o, const Point &p);
-	friend ostream& operator<<(ostream& o, const Point *p);
-};
-
-// Functor for sorting points on x
-struct less_x : public binary_function<const Point *, const Point *, bool> {
-	bool operator()(const Point *a, const Point *b) { return a->x < b->x; }
-};
-
-// Functor for sorting points on y
-struct less_y : public binary_function<const Point *, const Point *, bool> {
-	bool operator()(const Point *a, const Point *b) { return a->y < b->y; }
-};
-
-ostream&
-operator<<(ostream& o, const Point &p)
-{
-	o << p.x << ',' << p.y << '\n';
-	return o;
-}
-
-ostream&
-operator<<(ostream& o, const Point *p)
-{
-	o << *p;
-	return o;
-}
-
-typedef vector<set<const Point *> > Partition;
-
-// Return the Shannon entropy of a probability vector P
-// See http://www.scholarpedia.org/article/Entropy#Shannon_entropy
-template <typename T>
-double
-H(const T &p)
-{
-	double sum = 0;
-
-	for (typename T::const_iterator i = p.begin(); i != p.end(); i++)
-		sum += *i * log2(*i);
-	return -sum;
-}
-
-// Return the Shannon entropy of the specified partition of a set of npoints
-double
-H(const Partition &part)
-{
-	vector <double> p;
-	int npoints = 0;
-	for (Partition::const_iterator i = part.begin(); i != part.end(); i++) {
-		p.push_back(i->size());
-		npoints += i->size();
-	}
-	// Convert cardinalities to probability weights
-	for (vector <double>::iterator i = p.begin(); i != p.end(); i++)
-		*i /= npoints;
-	return H(p);
-}
 
 // Read a vector from the specified file
 void
@@ -261,14 +203,14 @@ get_clumps_partition(const vector <Point> &points, const Partition &q)
 			ypartition_map[*j - &*(points.begin())] = &*i;
 
 	Partition clumps;
-	Partition::value_type const *current_partition = NULL;
+	Partition::value_type const *current_y_partition = NULL;
 	for (int i = 0; i < data.size(); i++) {
 		if (DP())
 			cout << "Look at point " << i << ": " << *data[i] << endl;
 		// Indirect through data to get correct point ordinals
-		if (ypartition_map[data[i] - &*points.begin()] != current_partition) {
+		if (ypartition_map[data[i] - &*points.begin()] != current_y_partition) {
 			clumps.push_back(Partition::value_type());	// Start a new partition
-			current_partition = ypartition_map[data[i] - &*points.begin()];
+			current_y_partition = ypartition_map[data[i] - &*points.begin()];
 		}
 		clumps.back().insert(data[i]);
 	}
@@ -340,7 +282,19 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	Partition clumps(get_superclumps_partition(get_clumps_partition(points, q), points.size(), max_clumps));
 
-	assert(0);
+	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
+	vector < vector <double> > I(k, vector <double> (x + 1));
+
+	double hq = H(q);
+	for (int t = 2; t < k; t++) {
+		int maxs;
+		double maxh = numeric_limits<double>::min();
+		for (int s = 1; s <= t; s++) {
+			double hdiff = 44444444444;
+		}
+	}
+
+	return I[k - 1];
 }
 
 /*
@@ -412,6 +366,7 @@ void test_equipartition();
 void test_get_clumps_partition();
 void test_get_superclumps_partition();
 void test_H();
+void test_AdjustablePartition();
 
 int
 main(int argc, char *argv[])
@@ -425,6 +380,7 @@ main(int argc, char *argv[])
 	test_get_clumps_partition();
 	test_get_superclumps_partition();
 	test_H();
+	test_AdjustablePartition();
 	exit(0);
 #endif
 
@@ -623,7 +579,6 @@ test_get_clumps_partition()
 		assert(equal(expect_y.begin(), expect_y.end(), got_y.begin()));
 		assert(equal(expect_clumps.begin(), expect_clumps.end(), got_clumps.begin()));
 	}
-
 }
 
 void
@@ -672,5 +627,48 @@ test_H()
 	Partition expect(point_to_ptr(test, {0, 0, 0, 0, 1, 1, 2, 3}));
 	assert(equal(expect.begin(), expect.end(), got.begin()));
 	assert(H(got) == 7./4);
+}
+
+void
+test_AdjustablePartition()
+{
+	/*
+	 * 4             x
+	 * 3         x
+	 * 2       x
+	 * 1   x x
+	 * 0 x         x
+	 *   0 1 2 3 4 5 6
+	 *
+	 * Consider the above points.
+	 * Their Y axis equipartition will be {{(0,0), (5,0)}, {(1, 1), (2, 1)}, {(3,2), (4,3), (6, 4)}}
+	 * The corresponding clumps will be {{(0,0)},  {(1, 1), (2, 1)}, {(3,2), (4, 3)}, {(5,0)}, {(6,4)}}
+	 */
+
+	Point p[] = {{0, 0}, {1, 1}, {3, 2}, {2, 1}, {5, 0}, {4, 3}, {6, 4}};
+
+	vector <Point> test(p, p + 7);
+
+	// Six points into three bins
+	Partition q(equipartition_y_axis(test, 3));
+	Partition clumps(get_clumps_partition(test, q));
+
+	AdjustablePartition a12(clumps, q, H(q), 1, 2);
+	assert(a12.partition_points(1) == 1);
+	assert(a12.partition_points(1) == 1);
+	assert(a12.partition_points(2) == 2);
+	assert(a12.partition_points(2) == 2);
+
+	AdjustablePartition a13(clumps, q, H(q), 1, 3);
+	assert(a13.partition_points(1) == 1);
+	assert(a13.partition_points(2) == 4);
+
+	if (1 || DP()) {
+		cout << "Obtained Y equipartition" << endl;
+		show_partition(q);
+
+		cout << "Obtained clumps" << endl;
+		show_partition(clumps);
+	}
 }
 #endif
