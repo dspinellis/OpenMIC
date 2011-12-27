@@ -11,7 +11,7 @@
 
 #include "Point.h"
 #include "Partition.h"
-#include "AdjustablePartition.h"
+#include "ExtensiblePartition.h"
 
 #include "entropy.h"
 #include "debug.h"
@@ -372,7 +372,7 @@ void test_equipartition();
 void test_get_clumps_partition();
 void test_get_superclumps_partition();
 void test_H();
-void test_AdjustablePartition();
+void test_ExtensiblePartition();
 
 int
 main(int argc, char *argv[])
@@ -386,7 +386,7 @@ main(int argc, char *argv[])
 	test_get_clumps_partition();
 	test_get_superclumps_partition();
 	test_H();
-	test_AdjustablePartition();
+	test_ExtensiblePartition();
 	exit(0);
 #endif
 
@@ -636,7 +636,7 @@ test_H()
 }
 
 void
-test_AdjustablePartition()
+test_ExtensiblePartition()
 {
 	/*
 	 * 4             x
@@ -649,6 +649,7 @@ test_AdjustablePartition()
 	 * Consider the above points.
 	 * Their Y axis equipartition will be {{(0,0), (5,0)}, {(1, 1), (2, 1)}, {(3,2), (4,3), (6, 4)}}
 	 * The corresponding clumps will be {{(0,0)},  {(1, 1), (2, 1)}, {(3,2), (4, 3)}, {(5,0)}, {(6,4)}}
+	 *                                             1                 2                3        4
 	 */
 
 	Point p[] = {{0, 0}, {1, 1}, {3, 2}, {2, 1}, {5, 0}, {4, 3}, {6, 4}};
@@ -659,22 +660,46 @@ test_AdjustablePartition()
 	Partition q(equipartition_y_axis(test, 3));
 	Partition clumps(get_clumps_partition(test, q));
 
-	AdjustablePartition a12(clumps, q, H(q), 1, 2);
+	// Test ctors
+	ExtensiblePartition a12(clumps, q, H(q), 1, 2);
 	assert(a12.partition_points(1) == 1);
-	assert(a12.partition_points(1) == 1);
-	assert(a12.partition_points(2) == 2);
 	assert(a12.partition_points(2) == 2);
 
-	AdjustablePartition a13(clumps, q, H(q), 1, 3);
+	ExtensiblePartition a13(clumps, q, H(q), 1, 3);
 	assert(a13.partition_points(1) == 1);
 	assert(a13.partition_points(2) == 4);
 
-	if (1 || DP()) {
-		cout << "Obtained Y equipartition" << endl;
-		show_partition(q);
+	ExtensiblePartition a23(clumps, q, H(q), 2, 3);
+	assert(a23.partition_points(1) == 3);
+	assert(a23.partition_points(2) == 2);
 
-		cout << "Obtained clumps" << endl;
-		show_partition(clumps);
-	}
+	ExtensiblePartition a24(clumps, q, H(q), 2, 4);
+	assert(a24.partition_points(1) == 3);
+	assert(a24.partition_points(2) == 3);
+
+	ExtensiblePartition a25(clumps, q, H(q), 2, 5);
+	assert(a25.partition_points(1) == 3);
+	assert(a25.partition_points(2) == 4);
+
+	// Test add_point
+	ExtensiblePartition a234(a23.add_point(4));
+	assert(a234.partition_points(1) == 3);
+	assert(a234.partition_points(2) == 2);
+	assert(a234.partition_points(3) == 1);
+
+	ExtensiblePartition a124(a12.add_point(4));
+	assert(a124.partition_points(1) == 1);
+	assert(a124.partition_points(2) == 2);
+	assert(a124.partition_points(3) == 3);
+
+	// Test add_point of previously added point
+	ExtensiblePartition a1244(a124.add_point(4));
+	assert(a1244.partition_points(1) == 1);
+	assert(a1244.partition_points(2) == 2);
+	assert(a1244.partition_points(3) == 3);
+
+	ExtensiblePartition a122(a12.add_point(2));
+	assert(a122.partition_points(1) == 1);
+	assert(a122.partition_points(2) == 2);
 }
 #endif

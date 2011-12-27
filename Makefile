@@ -5,7 +5,7 @@ CXXFLAGS+=-std=gnu++0x -DTEST
 all: mine.exe
 	./mine Spellman-300.txt xgrid ygrid
 
-mine.exe: mine.cpp
+mine.exe: mine.cpp ExtensiblePartition.h Partition.h Point.h debug.h entropy.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 gdb: mine.exe
