@@ -296,20 +296,46 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	Partition clumps(get_superclumps_partition(get_clumps_partition(points, q), points.size(), max_clumps));
 
-	vector <int> clump_point_ordinals(get_clump_point_ordinals(clumps));
+	vector <int> c(get_clump_point_ordinals(clumps));
 
 	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
 	vector < vector <double> > I(k, vector <double> (x + 1));
-
 	double hq = H(q);
+
+	// Find the optimal partitions of size 2 for elements of 2 to k clumps
 	for (int t = 2; t < k; t++) {
-		int maxs;
+		// Find the best partition point s
+		int maxs = 0;
 		double maxh = numeric_limits<double>::min();
 		for (int s = 1; s <= t; s++) {
-			double hdiff = 44444444444;
+			ExtensiblePartition p(clumps, q, hq, s, t);
+			double hdiff = p.hp() - p.hpq();
+			if (hdiff > maxh) {
+				maxs = s;
+				maxh = hdiff;
+			}
 		}
+		assert(maxs != 0);
+		I[t][2] = hq + maxh;
 	}
 
+	// Inductively build the rest of the table of optimal partitions
+	for (int l = 3; l <= x; l++)
+		for (int t = 2; t < k; t++) {
+			// Find the best partition point s maximizing one of the previously found partitions
+			int maxs = 0;
+			double maxf = numeric_limits<double>::min();
+			for (int s = 2; s <= t; s++) {
+				double sum = 0;
+				// XXX Calculate it
+				double f = (double)c[s] / (double) c[t] * (I[s][l - 1] - hq) + sum;
+				if (f > maxf) {
+					maxs = s;
+					maxf = f;
+				}
+			}
+			assert(maxs != 0);
+		}
 	return I[k - 1];
 }
 
