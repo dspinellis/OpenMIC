@@ -269,6 +269,20 @@ get_superclumps_partition(const Partition &input_partitions, int npoints, int ma
 	return q;
 }
 
+
+// Return the point ordinals corresponding to each clump
+vector <int>
+get_clump_point_ordinals(const Partition &clumps)
+{
+	vector <int> result;
+	result.reserve(clumps.size());
+	int ordinal = 0;
+	for (Partition::const_iterator i = clumps.begin(); i != clumps.end(); i++)
+		result.push_back(ordinal += i->size());
+	assert(result.size() == clumps.size());
+	return result;
+}
+
 /*
  * Algorithm 2
  * "Returns a list of scores (I_2 ... I_x) such that each I_l is the maximum value of I(P;Q) over all
@@ -282,11 +296,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	Partition clumps(get_superclumps_partition(get_clumps_partition(points, q), points.size(), max_clumps));
 
-	// Establish the point ordinals corresponding to each clump
-	vector <int> clump_point_ordinals;
-	clump_point_ordinals.reserve(clumps.size());
-	for (Partition::const_iterator i = clumps.begin(); i != clumps.end(); i++)
-		clump_point_ordinals.push_back(clump_point_ordinals.back() + i->size());
+	vector <int> clump_point_ordinals(get_clump_point_ordinals(clumps));
 
 	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
 	vector < vector <double> > I(k, vector <double> (x + 1));
@@ -373,6 +383,7 @@ void test_get_clumps_partition();
 void test_get_superclumps_partition();
 void test_H();
 void test_ExtensiblePartition();
+void test_get_clump_point_ordinals();
 
 int
 main(int argc, char *argv[])
@@ -387,6 +398,7 @@ main(int argc, char *argv[])
 	test_get_superclumps_partition();
 	test_H();
 	test_ExtensiblePartition();
+	test_get_clump_point_ordinals();
 	exit(0);
 #endif
 
@@ -692,6 +704,9 @@ test_ExtensiblePartition()
 	assert(a124.partition_points(2) == 2);
 	assert(a124.partition_points(3) == 3);
 
+	// Verify entropy of the above partition
+	assert(a124.hp() == H(vector <double>({1./6, 2./6, 3./6})));
+
 	// Test add_point of previously added point
 	ExtensiblePartition a1244(a124.add_point(4));
 	assert(a1244.partition_points(1) == 1);
@@ -702,6 +717,38 @@ test_ExtensiblePartition()
 	assert(a122.partition_points(1) == 1);
 	assert(a122.partition_points(2) == 2);
 
-	assert(a124.hp() == H(vector <double>({1./6, 2./6, 3./6})));
+}
+
+void
+test_get_clump_point_ordinals()
+{
+	/*
+	 * 3         x
+	 * 2       x
+	 * 1   x x
+	 * 0 x         x
+	 *   0 1 2 3 4 5
+	 *
+	 * Consider the above points.
+	 * Their Y axis equipartition would be {{(0,0), (5,0)}, {(1, 1), (2, 1)}, {(3,2), (4,3)}}
+	 * Partition ordinals:                    0      0        1       1         2      2
+	 * The corresponding clumps would be {{(0,0)},  {(1, 1), (2, 1)}, {(3,2), (4, 3)}, {(5,0)}}
+	 * Partition ordinals:                    0      1        1         2      2         3
+	 * Point ordinals                         0      1                  3                5
+	 */
+
+	Point p[] = {{0, 0}, {1, 1}, {3, 2}, {2, 1}, {5, 0}, {4, 3}};
+
+	// Six points into three bins
+	vector <Point> test(p, p + 6);
+	Partition ypartition(equipartition_y_axis(test, 3));
+	Partition clumps(get_clumps_partition(test, ypartition));
+	vector <int> ordinals(get_clump_point_ordinals(clumps));
+	show_partition(clumps);
+	show_vector(ordinals);
+	assert(ordinals[0] == 0);
+	assert(ordinals[1] == 1);
+	assert(ordinals[2] == 3);
+	assert(ordinals[3] == 5);
 }
 #endif
