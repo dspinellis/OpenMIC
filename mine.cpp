@@ -701,5 +701,7 @@ test_ExtensiblePartition()
 	ExtensiblePartition a122(a12.add_point(2));
 	assert(a122.partition_points(1) == 1);
 	assert(a122.partition_points(2) == 2);
+
+	assert(a124.hp() == H(vector <double>({1./6, 2./6, 3./6})));
 }
 #endif
