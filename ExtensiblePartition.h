@@ -17,8 +17,8 @@ class ExtensiblePartition {
 public:
 	typedef vector <int> Points;		// Points storage type
 private:
-	const Partition &clumps;	// All possible horizontal partitions
-	const Partition &q;		// Vertical partition
+	const Partition &clumps;	// All possible partitions on the horizontal axis
+	const Partition &q;		// Partition along the vertical axis
 	double hq;			// Entropy of q
 	Points points;			// The ordinals of clumps over which we partition
 	int last_column_points;		// Number of points in last column
@@ -47,8 +47,8 @@ public:
 		return (r);
 	}
 
-	// Return the number of points in the specified horizontal partition p
-	inline int partition_points(int p) {
+	// Return the number of points in the specified horizontal axis partition p
+	inline int number_of_horizontal_partition_points(int p) {
 		assert(p >= 0);
 		assert(p <= points.size());
 		int n = 0;
@@ -66,6 +66,25 @@ public:
 		return n;
 	}
 
+	// Return the number of points in the specified horizontal axis partition p
+	set <const Point *> horizontal_partition_points(int p) {
+		assert(p >= 0);
+		assert(p <= points.size());
+
+		set <const Point *> result;
+
+		Partition::const_iterator start(clumps.begin());
+		advance(start, points[p - 1]);
+
+		Partition::const_iterator end(clumps.begin());
+		advance(end, points[p]);
+
+		for (Partition::const_iterator i = start; i != end; i++)
+			// Insert range is linear in N if the range is already sorted by value_comp().
+			result.insert(i->begin(), i->end());
+		return result;
+	}
+
 	// Return H(p)
 	double hp() {
 		// Create probability vector for H(p)
@@ -73,7 +92,7 @@ public:
 		vector <double> pp;
 		int npoints = 0;
 		for (int i = 1; i < points.size(); i++) {
-			int n = partition_points(i);
+			int n = number_of_horizontal_partition_points(i);
 			pp.push_back(n);
 			npoints += n;
 		}

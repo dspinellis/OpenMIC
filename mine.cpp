@@ -674,48 +674,48 @@ test_ExtensiblePartition()
 
 	// Test ctors
 	ExtensiblePartition a12(clumps, q, H(q), 1, 2);
-	assert(a12.partition_points(1) == 1);
-	assert(a12.partition_points(2) == 2);
+	assert(a12.number_of_horizontal_partition_points(1) == 1);
+	assert(a12.number_of_horizontal_partition_points(2) == 2);
 
 	ExtensiblePartition a13(clumps, q, H(q), 1, 3);
-	assert(a13.partition_points(1) == 1);
-	assert(a13.partition_points(2) == 4);
+	assert(a13.number_of_horizontal_partition_points(1) == 1);
+	assert(a13.number_of_horizontal_partition_points(2) == 4);
 
 	ExtensiblePartition a23(clumps, q, H(q), 2, 3);
-	assert(a23.partition_points(1) == 3);
-	assert(a23.partition_points(2) == 2);
+	assert(a23.number_of_horizontal_partition_points(1) == 3);
+	assert(a23.number_of_horizontal_partition_points(2) == 2);
 
 	ExtensiblePartition a24(clumps, q, H(q), 2, 4);
-	assert(a24.partition_points(1) == 3);
-	assert(a24.partition_points(2) == 3);
+	assert(a24.number_of_horizontal_partition_points(1) == 3);
+	assert(a24.number_of_horizontal_partition_points(2) == 3);
 
 	ExtensiblePartition a25(clumps, q, H(q), 2, 5);
-	assert(a25.partition_points(1) == 3);
-	assert(a25.partition_points(2) == 4);
+	assert(a25.number_of_horizontal_partition_points(1) == 3);
+	assert(a25.number_of_horizontal_partition_points(2) == 4);
 
 	// Test add_point
 	ExtensiblePartition a234(a23.add_point(4));
-	assert(a234.partition_points(1) == 3);
-	assert(a234.partition_points(2) == 2);
-	assert(a234.partition_points(3) == 1);
+	assert(a234.number_of_horizontal_partition_points(1) == 3);
+	assert(a234.number_of_horizontal_partition_points(2) == 2);
+	assert(a234.number_of_horizontal_partition_points(3) == 1);
 
 	ExtensiblePartition a124(a12.add_point(4));
-	assert(a124.partition_points(1) == 1);
-	assert(a124.partition_points(2) == 2);
-	assert(a124.partition_points(3) == 3);
+	assert(a124.number_of_horizontal_partition_points(1) == 1);
+	assert(a124.number_of_horizontal_partition_points(2) == 2);
+	assert(a124.number_of_horizontal_partition_points(3) == 3);
 
 	// Verify entropy of the above partition
 	assert(a124.hp() == H(vector <double>({1./6, 2./6, 3./6})));
 
 	// Test add_point of previously added point
 	ExtensiblePartition a1244(a124.add_point(4));
-	assert(a1244.partition_points(1) == 1);
-	assert(a1244.partition_points(2) == 2);
-	assert(a1244.partition_points(3) == 3);
+	assert(a1244.number_of_horizontal_partition_points(1) == 1);
+	assert(a1244.number_of_horizontal_partition_points(2) == 2);
+	assert(a1244.number_of_horizontal_partition_points(3) == 3);
 
 	ExtensiblePartition a122(a12.add_point(2));
-	assert(a122.partition_points(1) == 1);
-	assert(a122.partition_points(2) == 2);
+	assert(a122.number_of_horizontal_partition_points(1) == 1);
+	assert(a122.number_of_horizontal_partition_points(2) == 2);
 
 }
 
