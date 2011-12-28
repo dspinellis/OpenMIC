@@ -16,6 +16,15 @@ H(const T &p)
 
 	for (typename T::const_iterator i = p.begin(); i != p.end(); i++)
 		sum += *i * log2(*i);
+	/*
+	 * Entropy is equal to -sum
+    	 * (c) The entropy of a partition is nonnegative and equal to zero if and only if one of the
+	 * elements Ai of the partition has measure 1 (and all other elements have measure zero).
+	 * (d) The entropy of a partition into n sets is highest for the measure which assigns equal
+	 * values 1n to these sets. The entropy then equals log2n .
+	 */
+	assert(-sum >= 0);
+	assert(-sum <= log2(p.size()));
 	return -sum;
 }
 
