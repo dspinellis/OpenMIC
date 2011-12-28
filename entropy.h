@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>	// log2
 
+#include "debug.h"
 #include "Partition.h"
 
 // Return the Shannon entropy of a probability vector P
@@ -15,7 +16,8 @@ H(const T &p)
 	double sum = 0;
 
 	for (typename T::const_iterator i = p.begin(); i != p.end(); i++)
-		sum += *i * log2(*i);
+		if (*i != 0)		// XXX To handle emtpy grid areas. Not specified in the paper
+			sum += *i * log2(*i);
 	/*
 	 * Entropy is equal to -sum
     	 * (c) The entropy of a partition is nonnegative and equal to zero if and only if one of the
@@ -23,6 +25,8 @@ H(const T &p)
 	 * (d) The entropy of a partition into n sets is highest for the measure which assigns equal
 	 * values 1n to these sets. The entropy then equals log2n .
 	 */
+	if (DP())
+		cout << "H=" << -sum << endl;
 	assert(-sum >= 0);
 	assert(-sum <= log2(p.size()));
 	return -sum;
