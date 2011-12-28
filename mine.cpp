@@ -714,8 +714,8 @@ test_ExtensiblePartition()
 	/*
 	 * 4  |   |     |x
 	 * 3  |   |  x  |
-         *----+---+-----+-
 	 * 2  |   |x    |
+         *----+---+-----+-
 	 * 1  |x x|     |
          *----+---+-----+-
 	 * 0 x|   |    x|
@@ -723,13 +723,11 @@ test_ExtensiblePartition()
 	 *    |   |     |
 	 */
 	// Verify entropy of the points across both partitions
-#ifdef ndef
-	assert(a124.hpq() == H(vector <double>({
-		0,	0,	1./6,
-		0,	2./6,	1./6,
+	assert(fabs(a124.hpq() - H(vector <double>({
+		0,	0,	2./6,
+		0,	2./6,	0./6,
 		1./6,	0,	1./6,
-	})));
-#endif
+	}))) < 1e-10);
 
 	// Test add_point of previously added point
 	ExtensiblePartition a1244(a124.add_point(4));
@@ -758,7 +756,7 @@ test_get_clump_point_ordinals()
 	 * Partition ordinals:                    0      0        1       1         2      2
 	 * The corresponding clumps would be {{(0,0)},  {(1, 1), (2, 1)}, {(3,2), (4, 3)}, {(5,0)}}
 	 * Partition ordinals:                    0      1        1         2      2         3
-	 * Point ordinals                         0      1                  3                5
+	 * Point ordinals                         0      1                  3                5	   6
 	 */
 
 	Point p[] = {{0, 0}, {1, 1}, {3, 2}, {2, 1}, {5, 0}, {4, 3}};
@@ -768,8 +766,10 @@ test_get_clump_point_ordinals()
 	Partition ypartition(equipartition_y_axis(test, 3));
 	Partition clumps(get_clumps_partition(test, ypartition));
 	vector <int> ordinals(get_clump_point_ordinals(clumps));
-	show_partition(clumps);
-	show_vector(ordinals);
+	if (DP()) {
+		show_partition(clumps);
+		show_vector(ordinals);
+	}
 	// According to Yakir we must get
 	assert(ordinals[0] == 0);
 	assert(ordinals[1] == 1);

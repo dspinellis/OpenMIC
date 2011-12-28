@@ -49,15 +49,15 @@ private:
 	vector <int> last_column_partitioned_points;	// Number of points in last column partitioned by rows
 public:
 	// Create a new adjustable partition of size 2
-	ExtensiblePartition(const Partition &c, const Partition &qin, double hqin, int start, int end) :
+	ExtensiblePartition(const Partition &c, const Partition &qin, double hqin, int partition, int end) :
 		clumps(c), q(qin), hq(hqin), points(3) {
-			assert(start > 0);
-			assert(start < clumps.size());
+			assert(partition > 0);
+			assert(partition < clumps.size());
 			assert(end >= 0);
 			assert(end <= clumps.size());
-			assert(start <= end);
+			assert(partition <= end);
 			points[0] = 0;
-			points[1] = start;
+			points[1] = partition;
 			points[2] = end;
 	}
 
@@ -71,9 +71,9 @@ public:
 		return (r);
 	}
 
-	// Return the number of points in the specified horizontal axis partition p
+	// Return the number of points in the specified horizontal axis partition ending in p
 	inline int number_of_horizontal_partition_points(int p) {
-		assert(p >= 0);
+		assert(p > 0);
 		assert(p <= points.size());
 		int n = 0;
 
@@ -90,9 +90,9 @@ public:
 		return n;
 	}
 
-	// Return the number of points in the specified horizontal axis partition p
+	// Return the points in the specified horizontal axis partition p
 	set <const Point *> horizontal_partition_points(int p) {
-		assert(p >= 0);
+		assert(p > 0);
 		assert(p <= points.size());
 
 		set <const Point *> result;
@@ -103,8 +103,12 @@ public:
 		Partition::const_iterator end(clumps.begin());
 		advance(end, points[p]);
 
+		/*
+		 * Form the union of all sets.
+		 * This is efficient, because
+		 * insert range is linear in N if the range is already sorted by value_comp().
+		 */
 		for (Partition::const_iterator i = start; i != end; i++)
-			// Insert range is linear in N if the range is already sorted by value_comp().
 			result.insert(i->begin(), i->end());
 		return result;
 	}
@@ -132,25 +136,34 @@ public:
 		// TODO: Cache the following two as members and adjust them in add_point
 		vector <double> ppq;
 		int npoints = 0;
-		for (int i = 1; i < points.size(); i++) {
-			set <const Point *> hpoints(horizontal_partition_points(i));
-			for (Partition::const_iterator j = q.begin(); j != q.end(); j++) {
+		for (Partition::const_iterator i = q.begin(); i != q.end(); i++) {
+			for (int j = 1; j < points.size(); j++) {
+				set <const Point *> hpoints(horizontal_partition_points(j));
 				int n = 0;
 				CounterOutputIterator count_elements(n);
-				set_intersection(hpoints.begin(), hpoints.end(), j->begin(), j->end(), count_elements);
+				set_intersection(hpoints.begin(), hpoints.end(), i->begin(), i->end(), count_elements);
 				ppq.push_back(n);
 				npoints += n;
+				if (DP()) {
+					cout << "x=" << j << " y=" << distance(q.begin(), i);
+					cout << "\nPoints along the horizontal axis:\n";
+					copy(i->begin(), i->end(), ostream_iterator<const Point *>(cout, " "));
+					cout << "\nPoints along the vertical axis:\n";
+					copy(hpoints.begin(), hpoints.end(), ostream_iterator<const Point *>(cout, " "));
+					cout << "Intersection:\n";
+					set_intersection(hpoints.begin(), hpoints.end(), i->begin(), i->end(), ostream_iterator<const Point *>(cout, " "));
+				}
 			}
 		}
-		copy(ppq.begin(), ppq.end(), ostream_iterator<double>(cout, "\t"));
-		cout << endl << var(npoints) << endl;
+		if (DP()) {
+			copy(ppq.begin(), ppq.end(), ostream_iterator<double>(cout, "\t"));
+			cout << endl << var(npoints) << endl;
+		}
 		// Convert cardinalities to probability weights
 		for (vector <double>::iterator i = ppq.begin(); i != ppq.end(); i++)
 			*i /= npoints;
-		copy(ppq.begin(), ppq.end(), ostream_iterator<double>(cout, "\t"));
-		cout << endl;
 		return H(ppq);
 	}
 };
 
-#endif /* EXTENSIBLEPARTITION_H */
+#endif
