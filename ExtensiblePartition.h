@@ -69,6 +69,7 @@ public:
 	// Return H(p)
 	double hp() {
 		// Create probability vector for H(p)
+		// TODO: Cache the following two as members and adjust them in add_point
 		vector <double> pp;
 		int npoints = 0;
 		for (int i = 1; i < points.size(); i++) {
