@@ -71,7 +71,7 @@ public:
 		// Create probability vector for H(p)
 		vector <double> pp;
 		int npoints = 0;
-		for (int i = 0; i < points.size(); i++) {
+		for (int i = 1; i < points.size(); i++) {
 			int n = partition_points(i);
 			pp.push_back(n);
 			npoints += n;
