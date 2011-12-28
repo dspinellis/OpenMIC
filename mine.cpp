@@ -383,6 +383,7 @@ void test_get_clumps_partition();
 void test_get_superclumps_partition();
 void test_H();
 void test_ExtensiblePartition();
+void test_CounterOutputIterator();
 void test_get_clump_point_ordinals();
 
 int
@@ -398,7 +399,9 @@ main(int argc, char *argv[])
 	test_get_superclumps_partition();
 	test_H();
 	test_ExtensiblePartition();
+	test_CounterOutputIterator();
 	test_get_clump_point_ordinals();
+	cout << "All tests finished" << endl;
 	exit(0);
 #endif
 
@@ -660,6 +663,7 @@ test_ExtensiblePartition()
 	 *
 	 * Consider the above points.
 	 * Their Y axis equipartition will be {{(0,0), (5,0)}, {(1, 1), (2, 1)}, {(3,2), (4,3), (6, 4)}}
+	 * Partition ordinals:                    0      0        1       1         2      2     2
 	 * The corresponding clumps will be {{(0,0)},  {(1, 1), (2, 1)}, {(3,2), (4, 3)}, {(5,0)}, {(6,4)}}
 	 *                                             1                 2                3        4
 	 */
@@ -704,8 +708,26 @@ test_ExtensiblePartition()
 	assert(a124.number_of_horizontal_partition_points(2) == 2);
 	assert(a124.number_of_horizontal_partition_points(3) == 3);
 
-	// Verify entropy of the above partition
+	// Verify entropy of the above partition across the horizontal axis
 	assert(a124.hp() == H(vector <double>({1./6, 2./6, 3./6})));
+
+	/*
+	 * 4  |   |     |x
+	 * 3  |   |  x  |
+         *----+---+-----+-
+	 * 2  |   |x    |
+	 * 1  |x x|     |
+         *----+---+-----+-
+	 * 0 x|   |    x|
+	 *   0|1 2|3 4 5 6
+	 *    |   |     |
+	 */
+	// Verify entropy of the points across both partitions
+	assert(a124.hpq() == H(vector <double>({
+		0,	0,	1./6,
+		0,	2./6,	1./6,
+		1./6,	0,	1./6,
+	})));
 
 	// Test add_point of previously added point
 	ExtensiblePartition a1244(a124.add_point(4));
@@ -750,5 +772,15 @@ test_get_clump_point_ordinals()
 	assert(ordinals[1] == 1);
 	assert(ordinals[2] == 3);
 	assert(ordinals[3] == 5);
+}
+
+void
+test_CounterOutputIterator()
+{
+	vector<int> v(5, 0);
+	int n = 0;
+	CounterOutputIterator count_elements(n);
+	copy(v.begin(), v.end(), count_elements);
+	assert(n == 5);
 }
 #endif

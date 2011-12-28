@@ -4,10 +4,34 @@
 #include <set>
 #include <vector>
 #include <cassert>
+#include <iterator>
 
 #include "Partition.h"
 #include "entropy.h"
 #include "debug.h"
+
+// An output iterator used for counting generated elements
+class CounterOutputIterator :
+	public iterator<output_iterator_tag, void, void, void, void>
+{
+public:
+	explicit CounterOutputIterator(int &c) : counter(c) {}
+
+	CounterOutputIterator & operator*() { return *this; }
+	template <typename T> void operator=(T const& rhs) { }
+	CounterOutputIterator & operator=(const CounterOutputIterator &rhs) {
+		counter = rhs.counter;
+		return *this;
+	}
+	CounterOutputIterator operator++() {
+		CounterOutputIterator new_obj(*this);
+		counter++;
+		return new_obj;
+	}
+	CounterOutputIterator & operator++(int) { counter++; return *this; }
+private:
+	int &counter;
+};
 
 /*
  * A partial partition over the X axis clumps whose endpoint can be extended.
@@ -100,6 +124,32 @@ public:
 		for (vector <double>::iterator i = pp.begin(); i != pp.end(); i++)
 			*i /= npoints;
 		return H(pp);
+	}
+
+	// Return H(p, q)
+	double hpq() {
+		// Create probability vector for H(p, q)
+		// TODO: Cache the following two as members and adjust them in add_point
+		vector <double> ppq;
+		int npoints = 0;
+		for (int i = 1; i < points.size(); i++) {
+			set <const Point *> hpoints(horizontal_partition_points(i));
+			for (Partition::const_iterator j = q.begin(); j != q.end(); j++) {
+				int n = 0;
+				CounterOutputIterator count_elements(n);
+				set_intersection(hpoints.begin(), hpoints.end(), j->begin(), j->end(), count_elements);
+				ppq.push_back(n);
+				npoints += n;
+			}
+		}
+		copy(ppq.begin(), ppq.end(), ostream_iterator<double>(cout, "\t"));
+		cout << endl << var(npoints) << endl;
+		// Convert cardinalities to probability weights
+		for (vector <double>::iterator i = ppq.begin(); i != ppq.end(); i++)
+			*i /= npoints;
+		copy(ppq.begin(), ppq.end(), ostream_iterator<double>(cout, "\t"));
+		cout << endl;
+		return H(ppq);
 	}
 };
 
