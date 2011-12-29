@@ -16,6 +16,7 @@
 #include "entropy.h"
 #include "debug.h"
 
+typedef vector< vector<double> > matrix;
 
 /*
  * Missing from STL.  See Effective STL item 36 and
@@ -254,7 +255,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
 
-	vector < vector <double> > I(k, vector <double> (x + 1));
+	matrix I(k, vector <double> (x + 1));
 	vector < vector <ExtensiblePartition> > P(k, vector <ExtensiblePartition> (x + 1));
 
 	double hq = H(q);
@@ -339,7 +340,7 @@ struct flip : public unary_function<const Point &, Point> {
  * when OptimizeXAxis is called. When trying to partition the x-axis into x columns, the
  * algorithm will start with at most cx clumps."
  */
-vector <vector <double> >
+matrix
 characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 {
 	assert(clump_factor > 0);
@@ -350,8 +351,8 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 	transform(data.begin(), data.end(), back_inserter(data2), flip());
 
 	// Calculare the information content matrix (lines 2-6)
-	vector <vector <double> > mi(2, vector<double>(b / 2, 0));
-	vector <vector <double> > mi2(2, vector<double>(b / 2, 0));
+	matrix mi(2, vector<double>(b / 2, 0));
+	matrix mi2(2, vector<double>(b / 2, 0));
 	for (int y = 2; y <= b / 2; y++) {
 		int x = b / y;
 		if (DP()) {
@@ -366,7 +367,7 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 	}
 
 	// Fill-in the characteristic matrix (lines 7-10)
-	vector <vector <double> > cm(b / 2, vector<double>(b / 2, 0));
+	matrix cm(b / 2, vector<double>(b / 2, 0));
 	for (int x = 2; x <= b / 2; x++)
 		for (int y = 2; y <= b / 2; y++) {
 			if (x * y > b)
@@ -421,7 +422,12 @@ main(int argc, char *argv[])
 	for (vector <Point>::const_iterator i = points.begin(); i != points.end(); i++)
 		cout << i->x << ' ' << i->y << endl;
 
-	vector <vector <double> > cm(characteristic_matrix(points, pow(points.size(), grid_exponent), clumping));
+	matrix cm(characteristic_matrix(points, pow(points.size(), grid_exponent), clumping));
+
+	// Report results
+	cout << "X var,Y var,MIC (strength),MIC-p^2 (nonlinearity),MAS (non-monotonicity),"
+		"MEV (functionality),MCN (complexity),Linear regression (p)" << endl;
+
 	return 0;
 }
 
