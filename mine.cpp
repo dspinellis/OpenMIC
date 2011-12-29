@@ -345,7 +345,7 @@ struct flip : public unary_function<const Point &, Point> {
  * algorithm will start with at most cx clumps."
  */
 matrix
-characteristic_matrix(vector <Point> &data, double b, int clump_factor)
+characteristic_matrix(vector <Point> &data, int b, int clump_factor)
 {
 	assert(clump_factor > 0);
 	assert(b > 3);
@@ -354,12 +354,12 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 	vector <Point> data2;
 	transform(data.begin(), data.end(), back_inserter(data2), flip());
 
-	// Calculare the information content matrix (lines 2-6)
+	// Calculate the information content matrix (lines 2-6)
 	matrix mi(2, vector<double>(b / 2, 0));
 	matrix mi2(2, vector<double>(b / 2, 0));
 	for (int y = 2; y <= b / 2; y++) {
 		int x = b / y;
-		if (DP()) {
+		if (1 || DP()) {
 			cout << "x=" << x << " y=" << y << " b=" << b << endl;
 			vector <double> mmi(max_mi(data, x, y, clump_factor * x));
 			cout << "max_mi" << endl;
@@ -371,7 +371,7 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 	}
 
 	// Fill-in the characteristic matrix (lines 7-10)
-	matrix cm(b / 2, vector<double>(b / 2, 0));
+	matrix cm(b / 2 + 1, vector<double>(b / 2 + 1, 0));
 	for (int x = 2; x <= b / 2; x++)
 		for (int y = 2; y <= b / 2; y++) {
 			if (x * y > b)
@@ -487,10 +487,17 @@ main(int argc, char *argv[])
 	for (vector <Point>::const_iterator i = points.begin(); i != points.end(); i++)
 		cout << i->x << ' ' << i->y << endl;
 
-	matrix cm(characteristic_matrix(points, pow(points.size(), grid_exponent), clumping));
+	int b = pow(points.size(), grid_exponent);
+	if (b < 4) {
+		cerr << "not enough points" << endl;
+		exit(1);
+	}
+
+	matrix cm(characteristic_matrix(points, b, clumping));
 
 	cout << "Characteristic matrix:" << endl;
 	show_matrix(cm);
+	cout << endl;
 
 	// Report results
 	cout << "X var,Y var,MIC (strength),MAS (non-monotonicity),"
