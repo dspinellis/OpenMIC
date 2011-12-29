@@ -20,3 +20,6 @@ entropy.o: entropy.cpp
 
 gdb: mine.exe
 	gdb mine.exe
+
+MINE:
+	java -jar MINE.jar linear.csv 0
