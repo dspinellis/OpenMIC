@@ -267,7 +267,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 	for (int t = 2; t < k; t++) {
 		// Find the best partition point s
 		int maxs = 0;
-		double maxh = numeric_limits<double>::min();
+		double maxh = -numeric_limits<double>::max();
 		for (int s = 1; s <= t; s++) {
 			ExtensiblePartition p(s, t);
 			double hdiff = p.hp() - p.hpq();
@@ -275,6 +275,8 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 				maxs = s;
 				maxh = hdiff;
 			}
+			if (DP())
+				cout << var(t) << var(s) << var(hdiff) << var(maxh) << var(maxs) << endl;
 		}
 		assert(maxs != 0);
 		I[t][2] = hq + maxh;
@@ -287,7 +289,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 		// Try various clump points
 		for (int t = 2; t < k; t++) {
 			int maxs = 0;
-			double maxf = numeric_limits<double>::min();
+			double maxf = -numeric_limits<double>::max();
 			vector <ExtensiblePartition> cand(t + 1);		// Candidate partitions
 			// Find the best partition to use from the previously found partitions
 			for (int s = 2; s <= t; s++) {
@@ -390,7 +392,7 @@ void test_get_clump_point_ordinals();
 double
 mic(const matrix &cm)
 {
-	double result = numeric_limits<double>::min();
+	double result = -numeric_limits<double>::max();
 
 	for (matrix::const_iterator i = cm.begin(); i != cm.end(); i++)
 		for (matrix::value_type::const_iterator j = i->begin(); j != i->end(); j++)
@@ -403,7 +405,7 @@ mic(const matrix &cm)
 double
 mas(const matrix &cm)
 {
-	double result = numeric_limits<double>::min();
+	double result = -numeric_limits<double>::max();
 
 	for (int i = 0; i < cm.size(); i++)
 		for (int j = 0; j < cm[i].size(); j++) {
@@ -418,7 +420,7 @@ mas(const matrix &cm)
 double
 mev(const matrix &cm)
 {
-	double result = numeric_limits<double>::min();
+	double result = -numeric_limits<double>::max();
 
 	for (int i = 0; i < cm.size(); i++)
 		if (cm[i][2] > result)			// Or maybe 1 XXX?
