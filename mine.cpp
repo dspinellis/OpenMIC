@@ -303,6 +303,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 					sum += cell_points / c[t] * log2(cell_points / column_points);
 				}
 				double f = (double)c[s] / (double) c[t] * (I[s][l - 1] - hq) + sum;
+				cout << var(l) << var(t) << var(s) << var(f) << endl;
 				if (f > maxf) {
 					maxs = s;
 					maxf = f;
