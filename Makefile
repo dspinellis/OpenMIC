@@ -5,7 +5,8 @@ CXXFLAGS+=-std=gnu++0x -DTEST
 OBJ=mine.o ExtensiblePartition.o Point.o entropy.o Partition.o
 
 all: mine.exe
-	./mine Spellman-300.txt xgrid ygrid
+	./mine linear.txt
+	#./mine Spellman-300.txt
 
 mine.exe: $(OBJ)
 	$(CXX) $(CXXFLAGS) $(OBJ) -o $@
