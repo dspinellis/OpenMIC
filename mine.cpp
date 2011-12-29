@@ -1,5 +1,6 @@
 #include <vector>
 #include <set>
+#include <limits>
 #include <cassert>
 #include <algorithm>	// sort
 #include <iostream>	// cout

@@ -48,3 +48,5 @@ H(const Partition &part)
 		*i /= npoints;
 	return H(p);
 }
+
+template double H(const vector <double> &p);
