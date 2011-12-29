@@ -298,7 +298,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 				cand[s] = P[s][l - 1].add_point(t);
 				double sum = 0;
 				for (int i = 1; i <= q.size(); i++) {
-					double column_points = cand[s].number_of_horizontal_partition_points(i);
+					double column_points = cand[s].number_of_horizontal_partition_points(l);
 					double cell_points = cand[s].number_of_cell_points(i, l);
 					sum += cell_points / c[t] * log2(cell_points / column_points);
 				}
