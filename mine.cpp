@@ -296,6 +296,8 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 			// Find the best partition to use from the previously found partitions
 			for (int s = 2; s <= t; s++) {
 				cand[s] = P[s][l - 1].add_point(t);
+				if (cand[s].number_of_columns() < l)
+					continue;
 				double sum = 0;
 				for (int i = 1; i <= q.size(); i++) {
 					double column_points = cand[s].number_of_horizontal_partition_points(l);
@@ -309,9 +311,13 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 					maxf = f;
 				}
 			}
-			assert(maxs != 0);
-			P[t][l] = cand[maxs];
-			I[t][l] = hq + P[t][l].hp() - P[t][l].hpq();
+			if (maxs == 0) {
+				P[t][l] = P[t][l - 1];
+				I[t][l] = I[t][l - 1];
+			} else {
+				P[t][l] = cand[maxs];
+				I[t][l] = hq + P[t][l].hp() - P[t][l].hpq();
+			}
 		}
 	return I[k - 1];
 }

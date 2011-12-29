@@ -72,6 +72,10 @@ public:
 			points[2] = end;
 	}
 
+	int number_of_columns() const {
+		return points.size() - 1;
+	}
+
 	// Return a new ExtensiblePartition with an added partition point at its end
 	ExtensiblePartition add_point(int p) const {
 		assert(p >= points.back());
