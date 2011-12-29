@@ -299,13 +299,18 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 				if (cand[s].number_of_columns() < l)
 					continue;
 				double sum = 0;
+				double column_points = cand[s].number_of_horizontal_partition_points(l);
+				if (column_points == 0)
+					continue;
 				for (int i = 1; i <= q.size(); i++) {
-					double column_points = cand[s].number_of_horizontal_partition_points(l);
 					double cell_points = cand[s].number_of_cell_points(i, l);
+					if (cell_points == 0)
+						continue;
 					sum += cell_points / c[t] * log2(cell_points / column_points);
 				}
 				double f = (double)c[s] / (double) c[t] * (I[s][l - 1] - hq) + sum;
-				cout << var(l) << var(t) << var(s) << var(f) << endl;
+				if (DP())
+					cout << var(l) << var(t) << var(s) << var(f) << endl;
 				if (f > maxf) {
 					maxs = s;
 					maxf = f;
