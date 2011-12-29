@@ -268,9 +268,10 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 		// Find the best partition point s
 		int maxs = 0;
 		double maxh = -numeric_limits<double>::max();
+		vector <ExtensiblePartition> cand(t + 1);		// Candidate partitions
 		for (int s = 1; s <= t; s++) {
-			ExtensiblePartition p(s, t);
-			double hdiff = p.hp() - p.hpq();
+			cand[s] = ExtensiblePartition(s, t);
+			double hdiff = cand[s].hp() - cand[s].hpq();
 			if (hdiff > maxh) {
 				maxs = s;
 				maxh = hdiff;
@@ -279,6 +280,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 				cout << var(t) << var(s) << var(hdiff) << var(maxh) << var(maxs) << endl;
 		}
 		assert(maxs != 0);
+		P[t][2] = cand[maxs];
 		I[t][2] = hq + maxh;
 	}
 
