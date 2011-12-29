@@ -5,6 +5,9 @@
 #include <vector>
 #include <cassert>
 #include <iterator>
+#include <algorithm>	// set_intersection
+
+using namespace std;
 
 #include "Partition.h"
 #include "entropy.h"
@@ -41,27 +44,35 @@ class ExtensiblePartition {
 public:
 	typedef vector <int> Points;		// Points storage type
 private:
-	const Partition &clumps;	// All possible partitions on the horizontal axis
-	const Partition &q;		// Partition along the vertical axis
-	double hq;			// Entropy of q
-	Points points;			// The ordinals of clumps over which we partition
-	int last_column_points;		// Number of points in last column
-	vector <int> last_column_partitioned_points;	// Number of points in last column partitioned by rows
+	static const Partition *q;		// Partition along the vertical axis ===
+	static const Partition *clumps;		// All possible partitions on the horizontal axis |||
+	Points points;				// The ordinals of clumps over which this actually partitions
 public:
+	static void set_clumps(const Partition *p) {
+		clumps = p;
+	}
+
+	static void set_q(const Partition *p) {
+		q = p;
+	}
+
+	// Extensible partition placeholder
+	ExtensiblePartition() {}
+
 	// Create a new adjustable partition of size 2
-	ExtensiblePartition(const Partition &c, const Partition &qin, double hqin, int partition, int end) :
-		clumps(c), q(qin), hq(hqin), points(3) {
+	ExtensiblePartition(int partition, int end) :
+		points(3) {
 			assert(partition > 0);
-			assert(partition < clumps.size());
+			assert(partition < clumps->size());
 			assert(end >= 0);
-			assert(end <= clumps.size());
+			assert(end <= clumps->size());
 			assert(partition <= end);
 			points[0] = 0;
 			points[1] = partition;
 			points[2] = end;
 	}
 
-	// Return a new ExtensiblePartition with an added point at its end
+	// Return a new ExtensiblePartition with an added partition point at its end
 	ExtensiblePartition add_point(int p) const {
 		assert(p >= points.back());
 		ExtensiblePartition r(*this);
@@ -77,10 +88,10 @@ public:
 		assert(p <= points.size());
 		int n = 0;
 
-		Partition::const_iterator start(clumps.begin());
+		Partition::const_iterator start(clumps->begin());
 		advance(start, points[p - 1]);
 
-		Partition::const_iterator end(clumps.begin());
+		Partition::const_iterator end(clumps->begin());
 		advance(end, points[p]);
 
 		for (Partition::const_iterator i = start; i != end; i++)
@@ -97,10 +108,10 @@ public:
 
 		set <const Point *> result;
 
-		Partition::const_iterator start(clumps.begin());
+		Partition::const_iterator start(clumps->begin());
 		advance(start, points[p - 1]);
 
-		Partition::const_iterator end(clumps.begin());
+		Partition::const_iterator end(clumps->begin());
 		advance(end, points[p]);
 
 		/*
@@ -130,31 +141,44 @@ public:
 		return H(pp);
 	}
 
+	// Return the number of points in the specified grid cell
+	// row and col are 1-based
+	inline int number_of_cell_points(int row, int col) {
+		assert(row > 0);
+		assert(row <= q->size());
+		assert(col > 0);
+		assert(col <= points.size());
+
+		set <const Point *> hpoints(horizontal_partition_points(col));
+		const set <const Point *> &vpoints((*q)[row - 1]);
+
+		int n = 0;
+		CounterOutputIterator count_elements(n);
+		set_intersection(hpoints.begin(), hpoints.end(), vpoints.begin(), vpoints.end(), count_elements);
+		if (DP()) {
+			cout << " row=" << row << " col=" << col;
+			cout << "\nPoints along the horizontal axis:\n";
+			copy(vpoints.begin(), vpoints.end(), ostream_iterator<const Point *>(cout, " "));
+			cout << "\nPoints along the vertical axis:\n";
+			copy(hpoints.begin(), hpoints.end(), ostream_iterator<const Point *>(cout, " "));
+			cout << "Intersection:\n";
+			set_intersection(hpoints.begin(), hpoints.end(), vpoints.begin(), vpoints.end(), ostream_iterator<const Point *>(cout, " "));
+		}
+		return n;
+	}
+
 	// Return H(p, q)
 	double hpq() {
 		// Create probability vector for H(p, q)
 		// TODO: Cache the following two as members and adjust them in add_point
 		vector <double> ppq;
 		int npoints = 0;
-		for (Partition::const_iterator i = q.begin(); i != q.end(); i++) {
-			for (int j = 1; j < points.size(); j++) {
-				set <const Point *> hpoints(horizontal_partition_points(j));
-				int n = 0;
-				CounterOutputIterator count_elements(n);
-				set_intersection(hpoints.begin(), hpoints.end(), i->begin(), i->end(), count_elements);
+		for (int row = 1; row <= q->size(); row++)
+			for (int col = 1; col < points.size(); col++) {
+				int n = number_of_cell_points(row, col);
 				ppq.push_back(n);
 				npoints += n;
-				if (DP()) {
-					cout << "x=" << j << " y=" << distance(q.begin(), i);
-					cout << "\nPoints along the horizontal axis:\n";
-					copy(i->begin(), i->end(), ostream_iterator<const Point *>(cout, " "));
-					cout << "\nPoints along the vertical axis:\n";
-					copy(hpoints.begin(), hpoints.end(), ostream_iterator<const Point *>(cout, " "));
-					cout << "Intersection:\n";
-					set_intersection(hpoints.begin(), hpoints.end(), i->begin(), i->end(), ostream_iterator<const Point *>(cout, " "));
-				}
 			}
-		}
 		if (DP()) {
 			copy(ppq.begin(), ppq.end(), ostream_iterator<double>(cout, "\t"));
 			cout << endl << var(npoints) << endl;

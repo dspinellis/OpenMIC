@@ -63,17 +63,6 @@ show_vector(const vector <T> &v)
 	cout << endl;
 }
 
-void
-show_partition(const Partition &p)
-{
-	for (Partition::const_iterator i = p.begin(); i != p.end(); i++) {
-		for (Partition::value_type::const_iterator j = i->begin(); j != i->end(); j++)
-			cout << *j;
-		cout << '\n';
-	}
-	cout << endl;
-}
-
 template <typename T>
 void
 show_matrix(const vector <vector <T> > &m)
@@ -299,8 +288,14 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 	vector <int> c(get_clump_point_ordinals(clumps));
 
 	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
+
 	vector < vector <double> > I(k, vector <double> (x + 1));
+	vector < vector <ExtensiblePartition> > P(k, vector <ExtensiblePartition> (x + 1));
+
 	double hq = H(q);
+
+	ExtensiblePartition::set_clumps(&clumps);
+	ExtensiblePartition::set_q(&q);
 
 	// Find the optimal partitions of size 2 for elements of 2 to k clumps
 	for (int t = 2; t < k; t++) {
@@ -308,7 +303,7 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 		int maxs = 0;
 		double maxh = numeric_limits<double>::min();
 		for (int s = 1; s <= t; s++) {
-			ExtensiblePartition p(clumps, q, hq, s, t);
+			ExtensiblePartition p(s, t);
 			double hdiff = p.hp() - p.hpq();
 			if (hdiff > maxh) {
 				maxs = s;
@@ -320,14 +315,23 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 	}
 
 	// Inductively build the rest of the table of optimal partitions
+
+	// Build up for larger and larger partitions
 	for (int l = 3; l <= x; l++)
+		// Try various clump points
 		for (int t = 2; t < k; t++) {
-			// Find the best partition point s maximizing one of the previously found partitions
 			int maxs = 0;
 			double maxf = numeric_limits<double>::min();
+			vector <ExtensiblePartition> cand(t + 1);		// Candidate partitions
+			// Find the best partition to use from the previously found partitions
 			for (int s = 2; s <= t; s++) {
+				cand[s] = P[s][l - 1].add_point(t);
 				double sum = 0;
-				// XXX Calculate it
+				for (int i = 1; i <= q.size(); i++) {
+					double column_points = cand[s].number_of_horizontal_partition_points(i);
+					double cell_points = cand[s].number_of_cell_points(i, l);
+					sum += cell_points / c[t] * log2(cell_points / column_points);
+				}
 				double f = (double)c[s] / (double) c[t] * (I[s][l - 1] - hq) + sum;
 				if (f > maxf) {
 					maxs = s;
@@ -335,6 +339,8 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 				}
 			}
 			assert(maxs != 0);
+			P[t][l] = cand[maxs];
+			I[t][l] = hq + P[t][l].hp() - P[t][l].hpq();
 		}
 	return I[k - 1];
 }
@@ -383,12 +389,14 @@ characteristic_matrix(vector <Point> &data, double b, int clump_factor)
 	vector <vector <double> > mi2(2, vector<double>(b / 2, 0));
 	for (int y = 2; y <= b / 2; y++) {
 		int x = b / y;
-		cout << "x=" << x << " y=" << y << " b=" << b << endl;
-		vector <double> mmi(max_mi(data, x, y, clump_factor * x));
-		cout << "max_mi" << endl;
-		show_vector(mmi);
-		mi.push_back(mmi);
-		//mi.push_back(max_mi(data, x, y, clump_factor * x));
+		if (DP()) {
+			cout << "x=" << x << " y=" << y << " b=" << b << endl;
+			vector <double> mmi(max_mi(data, x, y, clump_factor * x));
+			cout << "max_mi" << endl;
+			show_vector(mmi);
+			mi.push_back(mmi);
+		} else
+			mi.push_back(max_mi(data, x, y, clump_factor * x));
 		mi2.push_back(max_mi(data2, x, y, clump_factor * x));
 	}
 
@@ -488,7 +496,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 1}));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -499,7 +507,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 1, 2}));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -509,8 +517,8 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 0, 1, 1, 2, 2, }));
 		if (DP()) {
 			show_vector(test);
-			show_partition(expect);
-			show_partition(got);
+			cout << expect;
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -520,7 +528,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 1, 1}));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -530,7 +538,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 0, 1, 1, 1, 2, 2, 2, }));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -540,7 +548,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 0, 0, 1, 1, 1, 1, 2, 2, }));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -550,7 +558,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, {0, 0, 1, 1, 2, 2, 2, 3, 3, 3, }));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -561,8 +569,8 @@ test_equipartition()
 		Partition got(equipartition_y_axis(test, 2));
 		if (DP()) {
 			show_vector(test);
-			show_partition(expect);
-			show_partition(got);
+			cout << expect;
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -576,7 +584,7 @@ test_equipartition()
 		Partition expect(point_to_ptr(test, expect_ordinals));
 		if (DP()) {
 			show_vector(test);
-			show_partition(got);
+			cout << got;
 		}
 		assert(equal(expect.begin(), expect.end(), got.begin()));
 	}
@@ -614,14 +622,14 @@ test_get_clumps_partition()
 			cout << "Vector" << endl;
 			show_vector(test);
 			cout << "Expected Y equipartition" << endl;
-			show_partition(expect_y);
+			cout << expect_y;
 			cout << "Obtained Y equipartition" << endl;
-			show_partition(got_y);
+			cout << got_y;
 
 			cout << "Expected clumps" << endl;
-			show_partition(expect_clumps);
+			cout << expect_clumps;
 			cout << "Obtained clumps" << endl;
-			show_partition(got_clumps);
+			cout << got_clumps;
 		}
 		assert(equal(expect_y.begin(), expect_y.end(), got_y.begin()));
 		assert(equal(expect_clumps.begin(), expect_clumps.end(), got_clumps.begin()));
@@ -702,24 +710,27 @@ test_ExtensiblePartition()
 	Partition q(equipartition_y_axis(test, 3));
 	Partition clumps(get_clumps_partition(test, q));
 
+	ExtensiblePartition::set_q(&q);
+	ExtensiblePartition::set_clumps(&clumps);
+
 	// Test ctors
-	ExtensiblePartition a12(clumps, q, H(q), 1, 2);
+	ExtensiblePartition a12(1, 2);
 	assert(a12.number_of_horizontal_partition_points(1) == 1);
 	assert(a12.number_of_horizontal_partition_points(2) == 2);
 
-	ExtensiblePartition a13(clumps, q, H(q), 1, 3);
+	ExtensiblePartition a13(1, 3);
 	assert(a13.number_of_horizontal_partition_points(1) == 1);
 	assert(a13.number_of_horizontal_partition_points(2) == 4);
 
-	ExtensiblePartition a23(clumps, q, H(q), 2, 3);
+	ExtensiblePartition a23(2, 3);
 	assert(a23.number_of_horizontal_partition_points(1) == 3);
 	assert(a23.number_of_horizontal_partition_points(2) == 2);
 
-	ExtensiblePartition a24(clumps, q, H(q), 2, 4);
+	ExtensiblePartition a24(2, 4);
 	assert(a24.number_of_horizontal_partition_points(1) == 3);
 	assert(a24.number_of_horizontal_partition_points(2) == 3);
 
-	ExtensiblePartition a25(clumps, q, H(q), 2, 5);
+	ExtensiblePartition a25(2, 5);
 	assert(a25.number_of_horizontal_partition_points(1) == 3);
 	assert(a25.number_of_horizontal_partition_points(2) == 4);
 
@@ -734,7 +745,7 @@ test_ExtensiblePartition()
 	assert(a124.number_of_horizontal_partition_points(2) == 2);
 	assert(a124.number_of_horizontal_partition_points(3) == 3);
 
-	// Verify entropy of the above partition across the horizontal axis
+	// Verify entropy of the partition across the horizontal axis
 	assert(a124.hp() == H(vector <double>({1./6, 2./6, 3./6})));
 
 	/*
@@ -748,6 +759,20 @@ test_ExtensiblePartition()
 	 *   0|1 2|3 4 5 6
 	 *    |   |     |
 	 */
+
+	// Verify number_of_cell_points
+	assert(a124.number_of_cell_points(1, 1) == 1);
+	assert(a124.number_of_cell_points(1, 2) == 0);
+	assert(a124.number_of_cell_points(1, 3) == 1);
+
+	assert(a124.number_of_cell_points(2, 1) == 0);
+	assert(a124.number_of_cell_points(2, 2) == 2);
+	assert(a124.number_of_cell_points(2, 3) == 0);
+
+	assert(a124.number_of_cell_points(3, 1) == 0);
+	assert(a124.number_of_cell_points(3, 2) == 0);
+	assert(a124.number_of_cell_points(3, 3) == 2);
+
 	// Verify entropy of the points across both partitions
 	assert(fabs(a124.hpq() - H(vector <double>({
 		0,	0,	2./6,
@@ -793,7 +818,7 @@ test_get_clump_point_ordinals()
 	Partition clumps(get_clumps_partition(test, ypartition));
 	vector <int> ordinals(get_clump_point_ordinals(clumps));
 	if (DP()) {
-		show_partition(clumps);
+		cout << clumps;
 		show_vector(ordinals);
 	}
 	// According to Yakir we must get

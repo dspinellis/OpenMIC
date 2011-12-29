@@ -23,17 +23,4 @@ struct less_y : public binary_function<const Point *, const Point *, bool> {
 	bool operator()(const Point *a, const Point *b) { return a->y < b->y; }
 };
 
-ostream&
-operator<<(ostream& o, const Point &p)
-{
-	o << p.x << ',' << p.y << '\n';
-	return o;
-}
-
-ostream&
-operator<<(ostream& o, const Point *p)
-{
-	o << *p;
-	return o;
-}
 #endif /* POINT_H */
