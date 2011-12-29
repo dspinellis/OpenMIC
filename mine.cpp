@@ -71,41 +71,6 @@ show_matrix(const vector <vector <T> > &m)
 		show_vector(*i);
 }
 
-// Return the mutual information of data in the specified grid
-// See http://www.scholarpedia.org/article/Mutual_information
-double
-mutual_information(vector <Point> &data, vector <double> &xbins, vector <double> ybins)
-{
-	// Probability mass * n (SOM 2.1)
-	vector <vector <int> > pm(ybins.size() + 1, vector<int>(xbins.size() + 1, 0));
-	// Marginals * n; see http://en.wikipedia.org/wiki/Marginal_probability
-	vector <int> xmar(xbins.size() + 1), ymar(ybins.size() + 1);
-	for (vector <Point>::const_iterator i = data.begin(); i != data.end(); i++) {
-		int xpos = lower_bound(xbins.begin(), xbins.end(), i->x) - xbins.begin();
-		int ypos = lower_bound(ybins.begin(), ybins.end(), i->y) - ybins.begin();
-		pm[ypos][xpos]++;
-		xmar[xpos]++;
-		ymar[ypos]++;
-	}
-	cout << "Probability mass\n";
-	show_matrix(pm);
-	cout << "X marginals\n";
-	show_vector(xmar);
-	cout << "Y marginals\n";
-	show_vector(ymar);
-
-	double n = data.size();
-	double result = 0;
-	for (int y = 0; y < ybins.size() + 1; y++)
-		for (int x = 0; x < xbins.size() + 1; x++)
-			if (pm[y][x] > 0 && xmar[x] > 0 && ymar[y] > 0) {		// Avoid log(0)
-				result += (double)pm[y][x] * (double)pm[y][x] / n * log2((double)pm[y][x] / ((double)xmar[x] * (double)ymar[y] / n));
-				// cout << pm[y][x] << '\t' << xmar[x] << '\t' << ymar[y] << '\t' << result << endl;
-			}
-	cout << "Mutual information: " << result << endl;
-	return result;
-}
-
 /*
  * Algorithm 3
  * "Returns a map Q: D -> {1, ...., y}  such that Q(p) is the row assignment of the point p and there
@@ -436,7 +401,6 @@ main(int argc, char *argv[])
 	test_CounterOutputIterator();
 	test_get_clump_point_ordinals();
 	cout << "All tests finished" << endl;
-	exit(0);
 #endif
 
 	// Read space-separated points
@@ -457,11 +421,6 @@ main(int argc, char *argv[])
 	for (vector <Point>::const_iterator i = points.begin(); i != points.end(); i++)
 		cout << i->x << ' ' << i->y << endl;
 
-	vector <double> xbins, ybins;
-	read_vector(argv[2], xbins);
-	read_vector(argv[3], ybins);
-
-	mutual_information(points, xbins, ybins);
 	vector <vector <double> > cm(characteristic_matrix(points, pow(points.size(), grid_exponent), clumping));
 	return 0;
 }
