@@ -386,6 +386,67 @@ void test_ExtensiblePartition();
 void test_CounterOutputIterator();
 void test_get_clump_point_ordinals();
 
+// Return the maximal information coefficient
+double
+mic(const matrix &cm)
+{
+	double result = numeric_limits<double>::min();
+
+	for (matrix::const_iterator i = cm.begin(); i != cm.end(); i++)
+		for (matrix::value_type::const_iterator j = i->begin(); j != i->end(); j++)
+			if (*j > result)
+				result = *j;
+	return result;
+}
+
+// Return the maximum asymmetry score
+double
+mas(const matrix &cm)
+{
+	double result = numeric_limits<double>::min();
+
+	for (int i = 0; i < cm.size(); i++)
+		for (int j = 0; j < cm[i].size(); j++) {
+			double v = fabs(cm[i][j] - cm[j][i]);
+			if (v > result)
+				result = v;
+		}
+	return result;
+}
+
+// Return the maximum edge value
+double
+mev(const matrix &cm)
+{
+	double result = numeric_limits<double>::min();
+
+	for (int i = 0; i < cm.size(); i++)
+		if (cm[i][2] > result)			// Or maybe 1 XXX?
+			result = cm[i][2];
+	for (int i = 0; i < cm[2].size(); i++)
+		if (cm[2][i] > result)
+			result = cm[2][i];		// Or maybe 1 XXX?
+	return result;
+}
+
+// Return the complexity
+double
+mcn(const matrix &cm, double mic, double epsilon)
+{
+	double result = numeric_limits<double>::max();
+
+	for (int i = 0; i < cm.size(); i++)
+		for (int j = 0; j < cm[i].size(); j++) {
+			if (cm[i][j] < (1 - epsilon) * mic)
+				continue;
+			double v = log2((i + 1) * (j + 1));
+			if (v < result)
+				result = v;
+		}
+	return result;
+}
+
+
 int
 main(int argc, char *argv[])
 {
@@ -424,10 +485,18 @@ main(int argc, char *argv[])
 
 	matrix cm(characteristic_matrix(points, pow(points.size(), grid_exponent), clumping));
 
-	// Report results
-	cout << "X var,Y var,MIC (strength),MIC-p^2 (nonlinearity),MAS (non-monotonicity),"
-		"MEV (functionality),MCN (complexity),Linear regression (p)" << endl;
+	cout << "Characteristic matrix:" << endl;
+	show_matrix(cm);
 
+	// Report results
+	cout << "X var,Y var,MIC (strength),MAS (non-monotonicity),"
+		"MEV (functionality),MCN (complexity)" << endl;
+	double m;
+	cout << "x, y, " <<
+		(m = mic(cm)) << ',' <<
+		mas(cm) << ',' <<
+		mev(cm) << ',' <<
+		mcn(cm, m, 0) << endl;
 	return 0;
 }
 
