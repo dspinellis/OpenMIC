@@ -6,6 +6,8 @@
 #include "Partition.h"
 #include "entropy.h"
 
+static const double EPSILON = 1e-8;
+
 // Return the Shannon entropy of a probability vector P
 // See http://www.scholarpedia.org/article/Entropy#Shannon_entropy
 template <typename T>
@@ -27,7 +29,7 @@ H(const T &p)
 	if (DP())
 		cout << "H=" << -sum << endl;
 	assert(-sum >= 0);
-	assert(-sum <= log2(p.size()));
+	assert(-sum <= log2(p.size()) + EPSILON);
 	return -sum;
 }
 
