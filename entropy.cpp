@@ -17,7 +17,7 @@ H(const T &p)
 	double sum = 0;
 
 	for (typename T::const_iterator i = p.begin(); i != p.end(); i++)
-		if (*i != 0)		// XXX To handle emtpy grid areas. Not specified in the paper
+		if (*i != 0)
 			sum += *i * log2(*i);
 	/*
 	 * Entropy is equal to -sum
