@@ -294,13 +294,13 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	// Build up for larger and larger partitions
 	for (int l = 3; l <= x; l++)
-		// Try various clump points
-		for (int t = 2; t < k; t++) {
+		// Try adding various clump points on the right
+		for (int t = l; t < k; t++) {
 			int maxs = 0;
 			double maxf = -numeric_limits<double>::max();
 			vector <ExtensiblePartition> cand(t + 1);		// Candidate partitions
 			// Find the best partition to use from the previously found partitions
-			for (int s = 2; s <= t; s++) {
+			for (int s = l - 1; s <= t; s++) {
 				cand[s] = P[s][l - 1].add_point(t);
 				if (cand[s].number_of_columns() < l)
 					continue;
@@ -322,13 +322,9 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 					maxf = f;
 				}
 			}
-			if (maxs == 0) {
-				P[t][l] = P[t][l - 1];
-				I[t][l] = I[t][l - 1];
-			} else {
-				P[t][l] = cand[maxs];
-				I[t][l] = hq + P[t][l].hp() - P[t][l].hpq();
-			}
+			assert(maxs != 0);
+			P[t][l] = cand[maxs];
+			I[t][l] = hq + P[t][l].hp() - P[t][l].hpq();
 		}
 	return I[k - 1];
 }
