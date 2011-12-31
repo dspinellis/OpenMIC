@@ -326,6 +326,9 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 			P[t][l] = cand[maxs];
 			I[t][l] = hq + P[t][l].hp() - P[t][l].hpq();
 		}
+	// Fill-in values missed due to t's loop upper limit
+	for (int l = k; l <= x; l++)
+		I[k - 1][l] = I[k - 1][k - 1];
 	return I[k - 1];
 }
 
