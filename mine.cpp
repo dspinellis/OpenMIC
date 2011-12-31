@@ -254,6 +254,11 @@ optimize_x_axis(const vector <Point> &points, const Partition &q, int x, int max
 
 	vector <int> c(get_clump_point_ordinals(clumps));
 
+	if (DP()) {
+		cout << "Clump ordinals" << endl;
+		show_vector(c);
+	}
+
 	int k = clumps.size();		// Compared to Algorithm 2 this is k + 1
 
 	matrix I(k, vector <double> (x + 1));
