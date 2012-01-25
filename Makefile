@@ -1,7 +1,12 @@
-#CXXFLAGS=-g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_DEBUG -D_GLIBCXX_CONCEPT_CHECKS
-# For testing
-#CXXFLAGS+=-std=gnu++0x -DTEST
+ifdef RELEASE
+# Production flags
 CXXFLAGS=-O3
+else
+# Debug build flags
+CXXFLAGS=-g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_DEBUG -D_GLIBCXX_CONCEPT_CHECKS
+# For testing
+CXXFLAGS+=-std=gnu++0x -DTEST
+endif
 
 OBJ=mine.o ExtensiblePartition.o Point.o entropy.o Partition.o
 
