@@ -1,0 +1,17 @@
+This project aims to be an open source implementation of the
+maximal information coefficient measure, a measure of two-variable
+dependence designed for the exploration of many-dimensional data sets.
+
+For more information on the measure see the
+[http://www.exploredata.net/ web site] created by the
+team that came up with the measure and the corresponding
+[http://dx.doi.org/10.1126/science.1205438 article] they
+published in ''Science''.
+
+Currently the code implements all the algorithms listed in the
+article, compiles, and passes all unit tests.
+
+Things that remain to be done are:
+* Correct the implementation to produce results close to those of the original implementation
+* Optimize the algorithm through aggressive caching
+* Explore other methods to obtain better results in less time
