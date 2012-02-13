@@ -1,6 +1,8 @@
 This project aims to be an open source implementation of the
 maximal information coefficient measure, a measure of two-variable
 dependence designed for the exploration of many-dimensional data sets.
+The project's source code is distributed under the permissive
+[http://www.apache.org/licenses/LICENSE-2.0 Apache License].
 
 For more information on the measure see the
 [http://www.exploredata.net/ web site] created by the
