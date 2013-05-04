@@ -17,3 +17,5 @@ Things that remain to be done are:
 * Correct the implementation to produce results close to those of the original implementation
 * Optimize the algorithm through aggressive caching
 * Explore other methods to obtain better results in less time
+
+For a C implementation that has been tested against the Java one, see http://mpba.fbk.eu/cmine
